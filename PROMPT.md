@@ -287,8 +287,10 @@ approximate-looking (`~45m`, never `45m`) so I remember it's a guess I made.
 
 This becomes my external memory, so losing it is unacceptable.
 
-- Every change persisted immediately to local storage (IndexedDB via a thin wrapper, `localStorage`
-  fallback).
+- Every change persisted immediately to `localStorage`. (Built with `localStorage` rather than
+  IndexedDB as originally specced: the whole task list is a few KB of text against a ~5 MB budget,
+  and a synchronous store has no async failure modes to reason about. Revisit only if attachments
+  ever land here.)
 - **Export to JSON** — one button, always available. Also export to plain markdown checklist.
 - **Import from JSON** — restore or merge.
 - Rolling local snapshots: keep the last 10 auto-saves, restorable from settings.
@@ -335,14 +337,22 @@ planner has something to reason about. Clearly marked, one-button "clear seed da
 
 ---
 
-## 12. Decisions to confirm before building
+## 12. Decisions — settled
 
-1. **One device or two?** Phone-only local storage is simpler and ships faster. Phone + laptop
-   sync means a Supabase backend (still no login screen — a single hardcoded key). Which?
-2. **AI planner: v1 or v2?** Current spec says the math-based planner is v1 and AI is optional
-   later. Agree, or do you want the AI layer from the start?
-3. **Where does it live?** Deployed to a URL you can add to your home screen, or run locally?
-4. **Dark mode default?** Assuming yes, dark-first, with a light mode.
+1. **One device.** Phone-only, `localStorage`. No backend, no sync, no account. JSON export is the
+   backup story.
+2. **Math planner in v1.** Deterministic scoring, instant and offline. An AI layer stays a v2
+   option once real use shows where its judgment is wrong.
+3. **Static build**, deployable anywhere; installable to the home screen as a PWA.
+4. **Dark only** for now. A light mode can come later if it's ever wanted.
+
+### Known gaps in the v1 build
+
+- No swipe or long-press gestures on rows. Every quick action (pin, snooze, someday, waiting,
+  delete) lives in the expanded row instead. Add gestures later if reaching for them is annoying.
+- No "duplicate task."
+- Tag merge works by renaming one tag onto another rather than a dedicated merge picker.
+- Seed dates are computed relative to install (next Friday / next Monday), not your real calendar.
 
 ## 13. Context that would tune the planner
 
