@@ -172,12 +172,52 @@ export function parseImport(text: string): ImportResult {
   }
 }
 
-export function download(filename: string, contents: string, mime: string) {
-  const blob = new Blob([contents], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
+export type SaveOutcome = 'saved' | 'declined' | 'failed'
+
+type ClaudeHost = { use?: (name: string) => Promise<unknown> }
+type Downloads = { save: (req: { filename: string; data: string }) => Promise<unknown> }
+
+/**
+ * Hand the user a file.
+ *
+ * Inside a published Artifact a plain `<a download>` is inert — the viewer
+ * mediates saves — so try that route first and fall back to the anchor for
+ * ordinary hosting.
+ */
+export async function download(filename: string, contents: string, mime: string): Promise<SaveOutcome> {
+  const host = (window as unknown as { claude?: ClaudeHost }).claude
+  if (host?.use) {
+    try {
+      const downloads = (await host.use('downloads')) as Downloads | null
+      if (downloads) {
+        await downloads.save({ filename, data: contents })
+        return 'saved'
+      }
+    } catch (error) {
+      return (error as { code?: string })?.code === 'declined' ? 'declined' : 'failed'
+    }
+  }
+
+  try {
+    const blob = new Blob([contents], { type: mime })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+    return 'saved'
+  } catch {
+    return 'failed'
+  }
+}
+
+/** Last-resort backup route that works absolutely everywhere. */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
 }

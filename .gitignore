@@ -25,3 +25,6 @@ dist-ssr
 
 # local preview logs
 *.log
+
+dist-single
+dist-artifact

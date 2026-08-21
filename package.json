@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview --port 4173 --strictPort",
     "test": "vitest run",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs",
+    "build:single": "tsc -b && vite build --mode single",
+    "build:artifact": "npm run build:single && node scripts/make-artifact.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
@@ -28,6 +30,7 @@
     "playwright": "^1.62.1",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
+    "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^4.1.11"
   }
 }
