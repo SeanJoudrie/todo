@@ -76,7 +76,7 @@ export function CaptureBar({ inputRef }: { inputRef: RefObject<HTMLTextAreaEleme
           onClick={submit}
           disabled={lines.length === 0}
           aria-label={isDump ? `Add ${lines.length} tasks` : 'Add task'}
-          className="mb-px flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-bg transition-opacity disabled:opacity-25"
+          className="mb-px flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent transition-opacity disabled:opacity-25"
         >
           <Icon name="plus" className="h-5 w-5" />
         </button>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../hooks'
 import { Icon } from './ui'
 
-const SWATCHES = ['#7d9b52', '#4f92c9', '#c97f4f', '#9b7fd4', '#4fb59b', '#e0709c', '#e0a33e', '#5fb45f', '#8d94a8']
+const SWATCHES = ['#5c7332', '#26608f', '#9c5a26', '#6b4bb0', '#1f7a66', '#b5407a', '#96650d', '#2f7a3d', '#5c6070']
 
 export function TagManager() {
   const { tags, tasks, upsertTag, removeTag, updateTask, pushToast } = useStore()
@@ -24,7 +24,7 @@ export function TagManager() {
       if (!next.includes(to)) next.push(to)
       updateTask(task.id, { tags: next })
     }
-    if (!merging) upsertTag({ id: to, label: to, color: tags.find((t) => t.id === from)?.color ?? '#8d94a8' })
+    if (!merging) upsertTag({ id: to, label: to, color: tags.find((t) => t.id === from)?.color ?? '#5c6070' })
     removeTag(from)
     pushToast(merging ? `Merged into ${to}` : `Renamed to ${to}`)
   }

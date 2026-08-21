@@ -1,7 +1,12 @@
 import type { Energy, Task, TagDef } from '../types'
-import { DEFAULT_TAGS } from '../types'
+import { DEFAULT_TAGS, LEGACY_TAG_COLORS } from '../types'
 
 const STATE_KEY = 'todo.state.v1'
+/**
+ * Deliberately outside AppState so it never rides along in an exported backup.
+ * A key in a file you share or sync is a key you've leaked.
+ */
+const API_KEY_KEY = 'todo.apikey.v1'
 const SNAPSHOT_KEY = 'todo.snapshots.v1'
 const MAX_SNAPSHOTS = 10
 const SNAPSHOT_INTERVAL_MS = 10 * 60 * 1000
@@ -49,6 +54,14 @@ function writeRaw(key: string, value: string): boolean {
   }
 }
 
+/** Lift tags saved under the old dark palette to their light-theme equivalents. */
+function migrateTagColors(tags: TagDef[]): TagDef[] {
+  return tags.map((tag) => {
+    const next = LEGACY_TAG_COLORS[tag.color.toLowerCase()]
+    return next ? { ...tag, color: next } : tag
+  })
+}
+
 export function loadState(): AppState {
   const raw = readRaw(STATE_KEY)
   if (!raw) return emptyState()
@@ -57,7 +70,8 @@ export function loadState(): AppState {
     return {
       version: 1,
       tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-      tags: Array.isArray(parsed.tags) && parsed.tags.length > 0 ? parsed.tags : DEFAULT_TAGS,
+      tags:
+        Array.isArray(parsed.tags) && parsed.tags.length > 0 ? migrateTagColors(parsed.tags) : DEFAULT_TAGS,
       settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) },
     }
   } catch {
@@ -69,6 +83,22 @@ export function saveState(state: AppState): boolean {
   const ok = writeRaw(STATE_KEY, JSON.stringify(state))
   if (ok) maybeSnapshot(state)
   return ok
+}
+
+export function loadApiKey(): string {
+  return readRaw(API_KEY_KEY) ?? ''
+}
+
+export function saveApiKey(key: string) {
+  const trimmed = key.trim()
+  if (trimmed) writeRaw(API_KEY_KEY, trimmed)
+  else {
+    try {
+      localStorage.removeItem(API_KEY_KEY)
+    } catch {
+      /* nothing we can do, and nothing that should break the app */
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

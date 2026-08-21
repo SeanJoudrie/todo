@@ -11,7 +11,7 @@ export function Toasts() {
         <div
           key={toast.id}
           role="status"
-          className="animate-rise pointer-events-auto flex items-center gap-3 rounded-full border border-line bg-surface-3 py-2 pr-2 pl-4 text-sm shadow-lg shadow-black/40"
+          className="animate-rise pointer-events-auto flex items-center gap-3 rounded-full border border-line bg-surface-3 py-2 pr-2 pl-4 text-sm shadow-lg shadow-black/10"
         >
           <span>{toast.message}</span>
           {toast.undo && (

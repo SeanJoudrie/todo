@@ -1,5 +1,13 @@
 import { useRef, useState } from 'react'
-import { download, exportJSON, exportMarkdown, listSnapshots, parseImport } from '../lib/storage'
+import {
+  download,
+  exportJSON,
+  exportMarkdown,
+  listSnapshots,
+  loadApiKey,
+  parseImport,
+  saveApiKey,
+} from '../lib/storage'
 import { useStore } from '../hooks'
 import { TagManager } from './TagManager'
 import { Field, Pill, Sheet } from './ui'
@@ -10,6 +18,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
   const fileRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [apiKey, setApiKey] = useState(() => loadApiKey())
 
   const snapshots = listSnapshots()
   const stamp = new Date().toISOString().slice(0, 10)
@@ -35,6 +44,27 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
             This browser is refusing to save. Nothing you add will survive a refresh — export a backup now.
           </p>
         )}
+
+        <Field label="Smarter organizing (optional)">
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => {
+              setApiKey(e.target.value)
+              saveApiKey(e.target.value)
+            }}
+            placeholder="sk-ant-..."
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Anthropic API key"
+            className="w-full rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs"
+          />
+          <p className="text-[11px] leading-relaxed text-faint">
+            Paste an Anthropic API key and "Dump it" uses Claude to sort your brain-dumps instead of the built-in
+            parser. Without one it still works, just more literally. The key stays in this browser, goes straight to
+            Anthropic, and is deliberately left out of your JSON backups.
+          </p>
+        </Field>
 
         <Field label="Tags">
           <TagManager />

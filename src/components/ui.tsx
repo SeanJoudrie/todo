@@ -55,6 +55,12 @@ export function Icon({ name, className = 'w-4 h-4' }: { name: string; className?
         <path d="M7.5 7.5h5l-5 5h5" />
       </>
     ),
+    sparkle: (
+      <>
+        <path d="M8 2.5 9.3 6.2 13 7.5 9.3 8.8 8 12.5 6.7 8.8 3 7.5l3.7-1.3z" />
+        <path d="M14.5 11.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" />
+      </>
+    ),
     undo: (
       <>
         <path d="M4 7h7.5a4 4 0 0 1 0 8H7" />
@@ -99,7 +105,7 @@ export function Pill({
       title={title}
       style={color && active ? { backgroundColor: `${color}26`, borderColor: `${color}80`, color } : undefined}
       className={[
-        'inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap transition-colors',
+        'meta inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 whitespace-nowrap transition-colors',
         active
           ? 'border-accent/60 bg-accent/15 text-accent'
           : 'border-line bg-surface-2 text-muted hover:border-faint hover:text-ink',
@@ -177,7 +183,7 @@ export function Sheet({
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <div className="text-[11px] font-medium tracking-wide text-faint uppercase">{label}</div>
+      <div className="label text-faint">{label}</div>
       {children}
     </div>
   )

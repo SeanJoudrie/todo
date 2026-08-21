@@ -13,9 +13,9 @@ export function TaskMeta({ task, today }: { task: Task; today: string }) {
   const doneSubs = subs.filter((s) => s.done).length
 
   return (
-    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] leading-relaxed">
+    <div className="meta mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 leading-relaxed">
       {task.tags.map((tag) => (
-        <span key={tag} style={{ color: colors[tag] ?? '#8d94a8' }}>
+        <span key={tag} style={{ color: colors[tag] ?? '#5c6070' }}>
           {tag}
         </span>
       ))}
@@ -64,7 +64,7 @@ export function TaskRow({ task, today = todayISO() }: { task: Task; today?: stri
           }}
           aria-label={done ? `Reopen ${task.title}` : `Complete ${task.title}`}
           className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-            done ? 'border-done bg-done text-bg' : 'border-faint hover:border-accent active:scale-95'
+            done ? 'border-done bg-done text-white' : 'border-faint hover:border-accent active:scale-95'
           }`}
         >
           {done && <Icon name="check" className="h-3.5 w-3.5" />}
@@ -81,7 +81,7 @@ export function TaskRow({ task, today = todayISO() }: { task: Task; today?: stri
           </span>
           {!done && <TaskMeta task={task} today={today} />}
           {done && task.completedAt && (
-            <span className="text-[11px] text-faint">done {formatDate(task.completedAt.slice(0, 10), today)}</span>
+            <span className="meta text-faint">done {formatDate(task.completedAt.slice(0, 10), today)}</span>
           )}
         </button>
 

@@ -33,7 +33,7 @@ export function TaskEditor({ task }: { task: Task }) {
     const label = newTag.trim().toLowerCase().replace(/\s+/g, '-')
     if (!label) return
     if (!store.tags.some((t) => t.id === label)) {
-      upsertTag({ id: label, label, color: '#8d94a8' })
+      upsertTag({ id: label, label, color: '#5c6070' })
     }
     if (!task.tags.includes(label)) toggleTag(label)
     setNewTag('')
@@ -59,7 +59,7 @@ export function TaskEditor({ task }: { task: Task }) {
                 onClick={() => updateSubtask(task.id, sub.id, { done: !sub.done })}
                 aria-label={sub.done ? 'Mark step not done' : 'Mark step done'}
                 className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                  sub.done ? 'border-done bg-done text-bg' : 'border-faint'
+                  sub.done ? 'border-done bg-done text-white' : 'border-faint'
                 }`}
               >
                 {sub.done && <Icon name="check" className="h-3 w-3" />}

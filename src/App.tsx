@@ -7,6 +7,7 @@ import { useStore } from './hooks'
 import { CaptureBar } from './components/CaptureBar'
 import { CompletedSection } from './components/CompletedSection'
 import { HeroCard } from './components/HeroCard'
+import { OrganizeSheet } from './components/OrganizeSheet'
 import { PlannerSheet } from './components/PlannerSheet'
 import { SettingsSheet } from './components/SettingsSheet'
 import { TaskList } from './components/TaskRow'
@@ -31,6 +32,7 @@ function Shell() {
   const { tasks, tags } = store
   const [view, setView] = useState<View>('today')
   const [planner, setPlanner] = useState(false)
+  const [organize, setOrganize] = useState(false)
   const [settings, setSettings] = useState(false)
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('smart')
@@ -134,14 +136,22 @@ function Shell() {
       <main className="flex-1 pb-28">
         {view === 'today' && (
           <>
-            <div className="px-3 pt-3">
+            <div className="grid grid-cols-2 gap-2 px-3 pt-3">
               <button
                 type="button"
                 onClick={() => setPlanner(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent/10 py-3 text-sm font-medium text-accent active:scale-[0.99]"
+                className="flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent-wash py-3 text-sm font-medium text-accent active:scale-[0.99]"
               >
                 <Icon name="compass" className="h-4 w-4" />
-                What should I do today?
+                What now?
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrganize(true)}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-surface py-3 text-sm font-medium active:scale-[0.99]"
+              >
+                <Icon name="sparkle" className="h-4 w-4 text-accent" />
+                Dump it
               </button>
             </div>
 
@@ -182,7 +192,7 @@ function Shell() {
                 className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:border-accent/50"
               />
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] text-faint uppercase">sort</span>
+                <span className="label text-faint">sort</span>
                 {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
                   <Pill key={key} active={sort === key} onClick={() => setSort(key)}>
                     {SORT_LABELS[key]}
@@ -191,7 +201,7 @@ function Shell() {
               </div>
               {usedTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-faint uppercase">tag</span>
+                  <span className="label text-faint">tag</span>
                   {usedTags.map((tag) => (
                     <Pill
                       key={tag.id}
@@ -261,11 +271,12 @@ function Shell() {
           captureRef.current?.focus()
         }}
         aria-label="Jump to capture"
-        className="fixed right-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-bg shadow-lg shadow-black/40 active:scale-95 sm:hidden"
+        className="fixed right-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-on-accent shadow-lg shadow-black/10 active:scale-95 sm:hidden"
       >
         <Icon name="plus" className="h-6 w-6" />
       </button>
 
+      <OrganizeSheet open={organize} onClose={() => setOrganize(false)} />
       <PlannerSheet open={planner} onClose={() => setPlanner(false)} />
       <SettingsSheet open={settings} onClose={() => setSettings(false)} />
       <Toasts />
@@ -276,7 +287,7 @@ function Shell() {
 function SectionLabel({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
     <div
-      className="border-y border-line/60 bg-surface/40 px-4 py-1.5 text-[11px] tracking-wide uppercase"
+      className="label border-y border-line/60 bg-surface-2/70 px-4 py-2"
       style={{ color: color ?? 'var(--color-faint)' }}
     >
       {children}

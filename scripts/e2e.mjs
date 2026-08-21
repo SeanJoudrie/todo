@@ -67,7 +67,7 @@ await page.waitForTimeout(250)
 check('reopening restores it', (await titles()).some((t) => t.includes('Call Dad')))
 
 // Planner
-await page.getByRole('button', { name: 'What should I do today?' }).click()
+await page.getByRole('button', { name: 'What now?' }).click()
 await page.waitForTimeout(400)
 const planText = await page.getByRole('dialog').innerText()
 check('planner produces an ordered plan', /1\./.test(planText))
@@ -90,6 +90,33 @@ check('big tasks fall to spillover', small.includes('IF YOU GET MORE TIME') || s
 
 await page.getByRole('button', { name: 'Close' }).first().click()
 await page.waitForTimeout(200)
+
+// Dump-and-organize: a rambling voice-note becomes separate, tagged tasks.
+await page.getByRole('button', { name: 'Dump it' }).click()
+await page.waitForTimeout(300)
+await page.getByLabel('Brain dump').fill(
+  "ok so I have to do an army presentation I think Tuesday I don't know I'll get back to it, " +
+    'and I also need to take the truck to the mechanic probably 2-3 hours, ' +
+    "and then I gotta make a post on LinkedIn. Don't forget to call dad 10 min.",
+)
+await page.getByRole('button', { name: 'Organize this' }).click()
+await page.waitForTimeout(600)
+const sheet = page.getByRole('dialog')
+const cards = await sheet.locator('li input[aria-label="Task title"]').all()
+const draftTitles = await Promise.all(cards.map((c) => c.inputValue()))
+check('organize splits a ramble into separate tasks', draftTitles.length === 4, draftTitles.join(' | '))
+check('organize strips the spoken filler', draftTitles[0] === 'Do an army presentation', draftTitles[0])
+const sheetText = await sheet.innerText()
+check('organize guesses tags without being told', /army/.test(sheetText))
+check('organize flags what you hedged on', /unsure/.test(sheetText))
+await sheet.getByRole('button', { name: /^Add all 4$/ }).click()
+await page.waitForTimeout(400)
+const afterOrganize = await titles()
+check(
+  'organized tasks land in the list',
+  ['army presentation', 'mechanic', 'LinkedIn'].every((t) => afterOrganize.some((x) => x.includes(t))),
+  `${afterOrganize.length} rows`,
+)
 
 // Tag rename / merge / delete
 await page.getByRole('button', { name: 'Settings' }).click()

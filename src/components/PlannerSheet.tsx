@@ -53,7 +53,7 @@ export function PlannerSheet({ open, onClose }: { open: boolean; onClose: () => 
         {/* Controls */}
         <div className="space-y-3 rounded-xl border border-line bg-surface-2/60 p-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-[11px] text-faint uppercase">time</span>
+            <span className="label mr-1 text-faint">time</span>
             {BUDGETS.map((b) => (
               <Pill
                 key={b.minutes}
@@ -69,7 +69,7 @@ export function PlannerSheet({ open, onClose }: { open: boolean; onClose: () => 
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-[11px] text-faint uppercase">energy</span>
+            <span className="label mr-1 text-faint">energy</span>
             {ENERGIES.map((e) => (
               <Pill
                 key={e.value}
@@ -86,7 +86,7 @@ export function PlannerSheet({ open, onClose }: { open: boolean; onClose: () => 
 
           {usedTags.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[11px] text-faint uppercase">focus</span>
+              <span className="label mr-1 text-faint">focus</span>
               <Pill
                 active={focusTags.length === 0}
                 onClick={() => {
@@ -165,7 +165,7 @@ export function PlannerSheet({ open, onClose }: { open: boolean; onClose: () => 
 
         {plan.spillover.length > 0 && (
           <div className="space-y-1">
-            <div className="text-[11px] tracking-wide text-faint uppercase">If you get more time</div>
+            <div className="label text-faint">If you get more time</div>
             <ul className="space-y-0.5">
               {plan.spillover.map((t) => (
                 <li key={t.id} className="text-sm text-muted">
@@ -181,7 +181,7 @@ export function PlannerSheet({ open, onClose }: { open: boolean; onClose: () => 
 
         {plan.excluded.length > 0 && (
           <div className="space-y-1">
-            <div className="text-[11px] tracking-wide text-faint uppercase">Not planned</div>
+            <div className="label text-faint">Not planned</div>
             <ul className="space-y-0.5">
               {plan.excluded.map(({ task, why }) => (
                 <li key={task.id} className="text-sm text-faint">
@@ -248,7 +248,7 @@ function PlanRow({
           <div className="text-[15px] leading-snug">
             {index + 1}. {item.task.title}
           </div>
-          <div className="mt-0.5 text-[11px] text-muted">{item.reasons.join(' · ')}</div>
+          <div className="mt-1 text-xs text-muted">{item.reasons.join(' · ')}</div>
 
           {explain && (
             <div className="mt-1.5 font-mono text-[10px] text-faint">

@@ -30,7 +30,7 @@ export function HeroCard({ onOpenPlanner }: { onOpenPlanner: () => void }) {
               setDone(hero.task.id, true)
               pushToast('Done', () => setDone(hero.task.id, false))
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-bg active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-on-accent active:scale-[0.98]"
           >
             <Icon name="check" className="h-4 w-4" /> Done
           </button>

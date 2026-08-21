@@ -60,16 +60,31 @@ export const CONTEXT_LABELS: Record<TaskContext, string> = {
   'business-hours': 'business hours',
 }
 
+/** Colours a tag carried under the old dark theme, remapped on load. */
+export const LEGACY_TAG_COLORS: Record<string, string> = {
+  '#7d9b52': '#5c7332',
+  '#4f92c9': '#26608f',
+  '#c97f4f': '#9c5a26',
+  '#9b7fd4': '#6b4bb0',
+  '#5f8fb0': '#396a86',
+  '#4fb59b': '#1f7a66',
+  '#e0709c': '#b5407a',
+  '#e0a33e': '#96650d',
+  '#5fb45f': '#2f7a3d',
+  '#8d94a8': '#5c6070',
+  '#a8875f': '#7a5a2e',
+}
+
 export const DEFAULT_TAGS: TagDef[] = [
-  { id: 'army', label: 'army', color: '#7d9b52' },
-  { id: 'va', label: 'va', color: '#4f92c9' },
-  { id: 'house', label: 'house', color: '#c97f4f' },
-  { id: 'career', label: 'career', color: '#9b7fd4' },
-  { id: 'current-job', label: 'current-job', color: '#5f8fb0' },
-  { id: 'growth', label: 'growth', color: '#4fb59b' },
-  { id: 'fun', label: 'fun', color: '#e0709c' },
-  { id: 'people', label: 'people', color: '#e0a33e' },
-  { id: 'health', label: 'health', color: '#5fb45f' },
-  { id: 'home', label: 'home', color: '#8d94a8' },
-  { id: 'admin', label: 'admin', color: '#a8875f' },
+  { id: 'army', label: 'army', color: '#5c7332' },
+  { id: 'va', label: 'va', color: '#26608f' },
+  { id: 'house', label: 'house', color: '#9c5a26' },
+  { id: 'career', label: 'career', color: '#6b4bb0' },
+  { id: 'current-job', label: 'current-job', color: '#396a86' },
+  { id: 'growth', label: 'growth', color: '#1f7a66' },
+  { id: 'fun', label: 'fun', color: '#b5407a' },
+  { id: 'people', label: 'people', color: '#96650d' },
+  { id: 'health', label: 'health', color: '#2f7a3d' },
+  { id: 'home', label: 'home', color: '#5c6070' },
+  { id: 'admin', label: 'admin', color: '#7a5a2e' },
 ]

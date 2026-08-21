@@ -42,7 +42,7 @@ export function CompletedSection({ tasks, defaultOpen = false }: { tasks: Task[]
         <Icon name="chevron" className={`h-4 w-4 transition-transform ${open ? 'rotate-90' : ''}`} />
         Completed ({total})
         {thisWeek.length > 0 && (
-          <span className="ml-auto text-[11px] text-faint">
+          <span className="meta ml-auto text-faint">
             {thisWeek.length} this week{weekMinutes > 0 && ` · ${formatDuration(weekMinutes, false)}`}
           </span>
         )}
@@ -52,7 +52,7 @@ export function CompletedSection({ tasks, defaultOpen = false }: { tasks: Task[]
         <div className="animate-rise pb-4">
           {groups.map(([day, list]) => (
             <div key={day}>
-              <div className="bg-surface/40 px-4 py-1.5 text-[11px] tracking-wide text-faint uppercase">
+              <div className="label bg-surface-2/70 px-4 py-2 text-faint">
                 {formatDate(day, today)} ({list.length})
               </div>
               <TaskList tasks={list} today={today} />

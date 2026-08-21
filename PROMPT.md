@@ -344,7 +344,12 @@ planner has something to reason about. Clearly marked, one-button "clear seed da
 2. **Math planner in v1.** Deterministic scoring, instant and offline. An AI layer stays a v2
    option once real use shows where its judgment is wrong.
 3. **Static build**, deployable anywhere; installable to the home screen as a PWA.
-4. **Dark only** for now. A light mode can come later if it's ever wanted.
+4. **Light only.** Paper-toned, not glaring white. Structural text — tags, dates, durations, counts,
+   clock times — is monospaced so the list reads like an organized record instead of prose.
+5. **"Dump it" is the primary capture path.** A free-text blob in, a reviewable list of structured
+   tasks out. Deterministic offline; Claude-powered when an API key is present, falling back
+   automatically. It must always guess a tag rather than leave one blank, flag hedged details as
+   uncertain, and show the source text so its work can be checked before anything is committed.
 
 ### Known gaps in the v1 build
 
@@ -353,6 +358,7 @@ planner has something to reason about. Clearly marked, one-button "clear seed da
 - No "duplicate task."
 - Tag merge works by renaming one tag onto another rather than a dedicated merge picker.
 - Seed dates are computed relative to install (next Friday / next Monday), not your real calendar.
+- No dark mode. Light only, by request.
 
 ## 13. Context that would tune the planner
 
