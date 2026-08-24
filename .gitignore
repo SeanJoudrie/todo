@@ -28,3 +28,6 @@ dist-ssr
 
 dist-single
 dist-artifact
+
+# personal task exports - never commit these
+exports/
