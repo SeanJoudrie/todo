@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { Task } from './types'
 import { effectiveDate, todayISO } from './lib/dates'
 import { asSortKey, matchesSearch, SORT_KEYS, SORT_LABELS, sortTasks, type SortKey } from './lib/sort'
+import { SEED_VERSION } from './lib/seed'
 import { StoreProvider } from './store'
 import { useStore } from './hooks'
 import { CaptureBar } from './components/CaptureBar'
@@ -160,6 +161,32 @@ function Shell() {
       <main className="flex-1 pb-28">
         {view === 'today' && (
           <>
+            {store.settings.seedVersion < SEED_VERSION && (
+              <div className="animate-rise mx-3 mt-3 rounded-xl border border-accent/50 bg-accent-wash p-3">
+                <p className="text-sm leading-snug">
+                  <strong className="font-medium">Your list is out of date.</strong> There's a newer version of your
+                  real task list waiting.
+                </p>
+                <p className="meta mt-1 text-muted">
+                  Nothing you've added, finished or edited will be touched — only untouched sample tasks are cleared.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const previous = store.fullState
+                    const { added, removed } = store.loadLatestSeed()
+                    store.pushToast(
+                      `Loaded ${added} tasks${removed > 0 ? `, cleared ${removed} samples` : ''}`,
+                      () => store.replaceAll(previous),
+                    )
+                  }}
+                  className="mt-2.5 w-full rounded-lg bg-accent py-2.5 text-sm font-medium text-on-accent active:scale-[0.99]"
+                >
+                  Load my real list
+                </button>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-2 px-3 pt-3">
               <button
                 type="button"

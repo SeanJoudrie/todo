@@ -580,6 +580,44 @@ export function buildSeedTasks(now = new Date()): Task[] {
  * ticked off, nothing edited. The moment the list has been used it belongs to
  * the user and is never overwritten.
  */
+/** Anything the owner has actually engaged with. Never touched by a refresh. */
+function isOwnWork(t: Task): boolean {
+  return !t.seed || t.status === 'done' || Boolean(t.completedAt) || t.updatedAt !== t.createdAt
+}
+
+const normalise = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+export type SeedRefresh = { tasks: Task[]; added: number; removed: number; kept: number }
+
+/**
+ * Pull in the current shipped list without destroying anything.
+ *
+ * Everything the owner added, completed or edited is kept. Only sample tasks
+ * still exactly as they shipped are cleared out, and shipped tasks whose title
+ * is already present are skipped, so nothing is duplicated.
+ *
+ * This is the escape hatch for an install where `shouldReseed` will never fire
+ * again — one completed task is enough to lock a list on an old version.
+ */
+export function refreshSeed(existing: Task[], now = new Date()): SeedRefresh {
+  const shipped = buildSeedTasks(now)
+  const shippedTitles = new Set(shipped.map((t) => normalise(t.title)))
+
+  // Keep the owner's work, and keep untouched tasks that are still part of the
+  // current list — recreating those would churn their ids for no reason and
+  // make a second run look like a big destructive change.
+  const kept = existing.filter((t) => isOwnWork(t) || shippedTitles.has(normalise(t.title)))
+  const keptTitles = new Set(kept.map((t) => normalise(t.title)))
+  const incoming = shipped.filter((t) => !keptTitles.has(normalise(t.title)))
+
+  return {
+    tasks: [...incoming, ...kept],
+    added: incoming.length,
+    removed: existing.length - kept.length,
+    kept: kept.length,
+  }
+}
+
 export function shouldReseed(tasks: Task[], installedVersion: number): boolean {
   if (installedVersion >= SEED_VERSION) return false
   if (tasks.length === 0) return false

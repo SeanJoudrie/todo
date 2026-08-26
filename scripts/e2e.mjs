@@ -193,6 +193,40 @@ check(
   `${afterOrganize.length} rows`,
 )
 
+// An install stranded on an old sample list must be able to recover it, and
+// recovering must not touch anything already done. This is the exact shape of
+// the real report: 10 sample tasks, one of them completed.
+await page.evaluate(() => {
+  const stamp = '2026-08-21T09:00:00.000Z'
+  const s = (title, over = {}) => ({
+    id: 'old-' + title, title, tags: ['home'], status: 'open', priority: 'normal',
+    createdAt: stamp, updatedAt: stamp, seed: true, ...over,
+  })
+  localStorage.setItem('todo.state.v1', JSON.stringify({
+    version: 1,
+    tasks: [
+      s('Move to the new place'), s('Clean up the living room'), s('Do laundry'),
+      s('Call Dad', { status: 'done', completedAt: '2026-08-26T12:00:00.000Z', updatedAt: '2026-08-26T12:00:00.000Z' }),
+    ],
+    settings: { seedInstalled: true, seedVersion: 1 },
+  }))
+})
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForTimeout(800)
+const strandedCount = (await titles()).length
+check('a stranded install is detected', strandedCount < 10, `${strandedCount} tasks before recovery`)
+await page.getByRole('button', { name: 'Load my real list' }).click()
+await page.waitForTimeout(900)
+const recovered = await titles()
+check('loading the real list restores it', recovered.length > 35, `${recovered.length} tasks after`)
+check('stale samples are cleared', !recovered.some((t) => t.startsWith('Do laundry')))
+const doneKept = await page.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem('todo.state.v1'))
+  const d = s.tasks.find((t) => t.title === 'Call Dad')
+  return Boolean(d) && d.status === 'done'
+})
+check('completed work survives the recovery', doneKept)
+
 // Sorting must work on Today, not only on All.
 await page.getByRole('button', { name: 'Today', exact: true }).click()
 await page.waitForTimeout(300)

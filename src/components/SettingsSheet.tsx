@@ -195,6 +195,27 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
           </Field>
         )}
 
+        <Field label="Starting list">
+          <Pill
+            onClick={() => {
+              const previous = fullState
+              const { added, removed } = store.loadLatestSeed()
+              pushToast(
+                added === 0 && removed === 0
+                  ? 'Already up to date'
+                  : `Loaded ${added} tasks${removed > 0 ? `, cleared ${removed} samples` : ''}`,
+                () => replaceAll(previous),
+              )
+            }}
+          >
+            load the newest list
+          </Pill>
+          <p className="text-[11px] leading-relaxed text-faint">
+            Pulls in the current shipped list. Anything you added, finished or edited is kept; only untouched sample
+            tasks are cleared, and nothing is duplicated.
+          </p>
+        </Field>
+
         <Field label="Photos">
           <Pill
             onClick={async () => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Subtask, Task } from './types'
 import { DEFAULT_TAGS } from './types'
-import { buildSeedTasks, newId, SEED_VERSION, shouldReseed } from './lib/seed'
+import { buildSeedTasks, newId, refreshSeed, SEED_VERSION, shouldReseed } from './lib/seed'
 import { loadState, saveState, type AppState } from './lib/storage'
 
 import { StoreContext, type Store, type Toast } from './store-context'
@@ -169,6 +169,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       replaceAll(next) {
         setState(next)
+      },
+
+      loadLatestSeed() {
+        const result = refreshSeed(state.tasks)
+        setState((s) => ({
+          ...s,
+          tasks: result.tasks,
+          settings: { ...s.settings, seedInstalled: true, seedVersion: SEED_VERSION },
+        }))
+        return { added: result.added, removed: result.removed }
       },
 
       clearSeed() {

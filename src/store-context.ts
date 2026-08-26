@@ -32,6 +32,7 @@ export type Store = {
   setSettings: (patch: Partial<Settings>) => void
   replaceAll: (state: AppState) => void
   clearSeed: () => void
+  loadLatestSeed: () => { added: number; removed: number }
   resetEverything: () => void
 
   toasts: Toast[]
