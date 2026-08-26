@@ -2,14 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Subtask, Task } from './types'
 import { DEFAULT_TAGS } from './types'
-import { buildSeedTasks, newId } from './lib/seed'
+import { buildSeedTasks, newId, SEED_VERSION, shouldReseed } from './lib/seed'
 import { loadState, saveState, type AppState } from './lib/storage'
 
 import { StoreContext, type Store, type Toast } from './store-context'
 
 function withSeed(state: AppState): AppState {
-  if (state.settings.seedInstalled || state.tasks.length > 0) return state
-  return { ...state, tasks: buildSeedTasks(), settings: { ...state.settings, seedInstalled: true } }
+  const fresh = !state.settings.seedInstalled && state.tasks.length === 0
+  if (!fresh && !shouldReseed(state.tasks, state.settings.seedVersion)) return state
+  return {
+    ...state,
+    tasks: buildSeedTasks(),
+    settings: { ...state.settings, seedInstalled: true, seedVersion: SEED_VERSION },
+  }
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {

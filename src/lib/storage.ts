@@ -16,6 +16,8 @@ export type Settings = {
   lastEnergy: Energy
   lastFocusTags: string[]
   seedInstalled: boolean
+  /** Which shipped starting list this install has. See `shouldReseed`. */
+  seedVersion: number
 }
 
 export type AppState = {
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lastEnergy: 'normal',
   lastFocusTags: [],
   seedInstalled: false,
+  seedVersion: 0,
 }
 
 export function emptyState(): AppState {

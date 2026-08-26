@@ -81,6 +81,8 @@ export const DEFAULT_TAGS: TagDef[] = [
   { id: 'house', label: 'house', color: '#9c5a26' },
   { id: 'career', label: 'career', color: '#6b4bb0' },
   { id: 'current-job', label: 'current-job', color: '#396a86' },
+  { id: 'money', label: 'money', color: '#0f6b7a' },
+  { id: 'content', label: 'content', color: '#8f3a9e' },
   { id: 'growth', label: 'growth', color: '#1f7a66' },
   { id: 'fun', label: 'fun', color: '#b5407a' },
   { id: 'people', label: 'people', color: '#96650d' },

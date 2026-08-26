@@ -20,7 +20,7 @@ await page.goto(BASE, { waitUntil: 'networkidle' })
 await page.waitForTimeout(300)
 
 const seeded = await titles()
-check('seeds 11 tasks', seeded.length === 11, `got ${seeded.length}`)
+check('ships a starting list', seeded.length > 20, `got ${seeded.length}`)
 
 // Capture round-trip
 await box().fill('Call the VA about my claim tomorrow 30 min')
@@ -55,16 +55,17 @@ await page.waitForTimeout(300)
 const undone = await titles()
 check('undo removes all three', undone.filter((t) => /garage|amazon|haircut/.test(t)).length === 0)
 
-// Complete + restore
-await page.getByRole('button', { name: /^Complete Call Dad/ }).click()
+// Complete + restore, against whatever the first task happens to be.
+const victim = (await titles())[0].split('\n')[0].trim()
+await page.getByRole('button', { name: `Complete ${victim}` }).click()
 await page.waitForTimeout(250)
-check('completing removes it from the open list', !(await titles()).some((t) => t.includes('Call Dad')))
+check('completing removes it from the open list', !(await titles()).some((t) => t.startsWith(victim)), victim)
 await page.getByRole('button', { name: /^Completed \(/ }).click()
 await page.waitForTimeout(250)
-check('completed section lists it', (await page.locator('main').innerText()).includes('Call Dad'))
-await page.getByRole('button', { name: /^Reopen Call Dad/ }).click()
+check('completed section lists it', (await page.locator('main').innerText()).includes(victim))
+await page.getByRole('button', { name: `Reopen ${victim}` }).click()
 await page.waitForTimeout(250)
-check('reopening restores it', (await titles()).some((t) => t.includes('Call Dad')))
+check('reopening restores it', (await titles()).some((t) => t.startsWith(victim)))
 
 // Planner
 await page.getByRole('button', { name: 'What now?' }).click()
@@ -74,14 +75,27 @@ check('planner produces an ordered plan', /1\./.test(planText))
 check('every plan line has a clock slot', (planText.match(/\d{1,2}:\d{2} (AM|PM) –/g) ?? []).length > 0)
 check('planner explains itself', /due|late|quick win|hardest|chip away|fits/.test(planText))
 
-// Focus filter
-await page.getByRole('dialog').getByRole('button', { name: 'army' }).click()
+// Focus filter: two different focuses must yield disjoint plans. Proves the
+// filter actually bites without hardcoding any task title.
+const planTitles = async () =>
+  (await page.getByRole('dialog').locator('li .text-\\[15px\\]').allInnerTexts()).map((t) => t.trim())
+await page.getByRole('dialog').getByRole('button', { name: 'army', exact: true }).click()
 await page.waitForTimeout(300)
-const armyPlan = await page.getByRole('dialog').innerText()
-check('focus filter narrows the plan', armyPlan.includes('UCMJ') && !armyPlan.includes('1. Clean up'))
+const armyPlan = await planTitles()
+await page.getByRole('dialog').getByRole('button', { name: 'army', exact: true }).click()
+await page.getByRole('dialog').getByRole('button', { name: 'content', exact: true }).click()
+await page.waitForTimeout(300)
+const contentPlan = await planTitles()
+const overlap = armyPlan.filter((t) => contentPlan.includes(t))
+check(
+  'focus filter narrows the plan',
+  armyPlan.length > 0 && contentPlan.length > 0 && overlap.length === 0,
+  `army ${armyPlan.length}, content ${contentPlan.length}, overlap ${overlap.length}`,
+)
+await page.getByRole('dialog').getByRole('button', { name: 'whatever' }).click()
+await page.waitForTimeout(200)
 
 // Tiny budget
-await page.getByRole('dialog').getByRole('button', { name: 'whatever' }).click()
 await page.getByRole('dialog').getByRole('button', { name: '30m', exact: true }).click()
 await page.waitForTimeout(300)
 const small = await page.getByRole('dialog').innerText()
@@ -122,7 +136,7 @@ check(
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.waitForTimeout(300)
 const dialog = page.getByRole('dialog')
-await dialog.getByRole('button', { name: 'growth', exact: true }).click()
+await dialog.getByRole('button', { name: 'growth', exact: true }).first().click()
 await page.keyboard.press('ControlOrMeta+a')
 await page.keyboard.type('fun')
 await page.keyboard.press('Enter')
