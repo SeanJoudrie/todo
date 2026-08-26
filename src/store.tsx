@@ -2,19 +2,29 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Subtask, Task } from './types'
 import { DEFAULT_TAGS } from './types'
+import { applyLog, backfillLog, rebuildLog, recordDone, recordUndone } from './lib/completions'
 import { buildSeedTasks, newId, refreshSeed, SEED_VERSION, shouldReseed } from './lib/seed'
 import { loadState, saveState, type AppState } from './lib/storage'
 
 import { StoreContext, type Store, type Toast } from './store-context'
 
 function withSeed(state: AppState): AppState {
+  // Adopt anything already finished before this record existed, so existing
+  // completions get the same protection as new ones.
+  backfillLog(state.tasks)
+
   const fresh = !state.settings.seedInstalled && state.tasks.length === 0
-  if (!fresh && !shouldReseed(state.tasks, state.settings.seedVersion)) return state
-  return {
-    ...state,
-    tasks: buildSeedTasks(),
-    settings: { ...state.settings, seedInstalled: true, seedVersion: SEED_VERSION },
-  }
+  const seeded =
+    !fresh && !shouldReseed(state.tasks, state.settings.seedVersion)
+      ? state
+      : {
+          ...state,
+          tasks: buildSeedTasks(),
+          settings: { ...state.settings, seedInstalled: true, seedVersion: SEED_VERSION },
+        }
+
+  // Whatever the list turned out to be, anything already finished stays finished.
+  return { ...seeded, tasks: applyLog(seeded.tasks).tasks }
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -99,11 +109,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateTask: patchTask,
 
       removeTask(id) {
+        // A deliberate delete also forgets the completion, so it is never
+        // resurrected later by the record.
+        const task = state.tasks.find((t) => t.id === id)
+        if (task) recordUndone(task.title)
         mutate((tasks) => tasks.filter((t) => t.id !== id))
       },
 
       setDone(id, done) {
-        patchTask(id, done ? { status: 'done', completedAt: stamp() } : { status: 'open', completedAt: undefined })
+        const task = state.tasks.find((t) => t.id === id)
+        const at = stamp()
+        // Written straight to storage first, so a reload a split second later
+        // still knows this was finished even if nothing else got saved.
+        if (task) {
+          if (done) recordDone(task.title, at)
+          else recordUndone(task.title)
+        }
+        patchTask(id, done ? { status: 'done', completedAt: at } : { status: 'open', completedAt: undefined })
       },
 
       togglePin(id) {
@@ -168,14 +190,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
 
       replaceAll(next) {
+        rebuildLog(next.tasks)
         setState(next)
       },
 
       loadLatestSeed() {
         const result = refreshSeed(state.tasks)
+        const restored = applyLog(result.tasks).tasks
         setState((s) => ({
           ...s,
-          tasks: result.tasks,
+          tasks: restored,
           settings: { ...s.settings, seedInstalled: true, seedVersion: SEED_VERSION },
         }))
         return { added: result.added, removed: result.removed }

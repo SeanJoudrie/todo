@@ -368,6 +368,40 @@ check('photo survives a reload', (await page.getByRole('button', { name: 'View p
 await page.locator('main li button[aria-expanded]').first().click()
 await page.waitForTimeout(200)
 
+// Finishing something must stick, whatever happens to the task list afterwards.
+let ticked = 0
+for (let i = 0; i < 5; i++) {
+  const c = page.locator('main li button[aria-label^="Complete"]').first()
+  if ((await c.count()) === 0) break
+  await c.click()
+  await page.waitForTimeout(200)
+  ticked++
+}
+const markedDone = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('todo.state.v1')).tasks.filter((t) => t.status === 'done').map((t) => t.title))
+check('ticking a task off records it independently', 
+  (await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('todo.completions.v1') ?? '{}')).length)) >= ticked,
+  `${ticked} ticked`)
+
+// Destroy the whole list, the way a bad reseed or restore would.
+await page.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem('todo.state.v1'))
+  s.tasks = []
+  s.settings.seedInstalled = false
+  s.settings.seedVersion = 0
+  localStorage.setItem('todo.state.v1', JSON.stringify(s))
+})
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForTimeout(1100)
+const backAgain = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('todo.state.v1')).tasks.filter((t) => t.status === 'done').map((t) => t.title))
+const missing = markedDone.filter((t) => !backAgain.includes(t))
+check(
+  'completions survive the entire task list being destroyed',
+  markedDone.length > 0 && missing.length === 0,
+  missing.length ? `MISSING: ${missing.join(' | ')}` : `${backAgain.length}/${markedDone.length} restored`,
+)
+
 // Tag rename / merge / delete
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.waitForTimeout(300)
