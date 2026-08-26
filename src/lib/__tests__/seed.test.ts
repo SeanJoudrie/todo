@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Task } from '../../types'
+import { DEFAULT_TAGS } from '../../types'
 import { buildSeedTasks, SEED_VERSION, shouldReseed } from '../seed'
 
 const NOW = new Date(2026, 7, 24, 9, 0) // Monday
@@ -22,6 +23,26 @@ describe('the shipped list', () => {
       expect(t.title.length, t.title).toBeGreaterThan(0)
       expect(t.tags.length, t.title).toBeGreaterThan(0)
     }
+  })
+
+  it('tags richly enough that filtering finds things', () => {
+    const tasks = untouched()
+    const single = tasks.filter((t) => t.tags.length === 1)
+    const average = tasks.reduce((n, t) => n + t.tags.length, 0) / tasks.length
+    expect(average).toBeGreaterThan(2)
+    // A handful of genuinely single-area tasks is fine; twenty is a gap.
+    expect(single.length).toBeLessThanOrEqual(3)
+  })
+
+  it('only uses tags that actually exist', () => {
+    const known = new Set(DEFAULT_TAGS.map((t) => t.id))
+    for (const t of untouched()) {
+      for (const tag of t.tags) expect(known.has(tag), `${t.title} -> ${tag}`).toBe(true)
+    }
+  })
+
+  it('ships nothing already sitting in the unsorted bucket', () => {
+    expect(untouched().some((t) => t.tags.includes('unsorted'))).toBe(false)
   })
 
   it('uses unique ids, including across subtasks', () => {

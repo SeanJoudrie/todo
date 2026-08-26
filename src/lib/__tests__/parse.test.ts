@@ -91,6 +91,27 @@ describe('tags and context', () => {
   })
 })
 
+describe('everything gets a tag', () => {
+  it('falls back to unsorted rather than leaving a task unfindable', () => {
+    for (const s of ['Ask Mike about the trailer', 'Sign up for the thing on Saturday', 'Xyzzy']) {
+      const tags = parseCapture(s, NOW).patch.tags ?? []
+      expect(tags.length, s).toBeGreaterThan(0)
+      expect(tags, s).toContain('unsorted')
+    }
+  })
+
+  it('does not use the fallback when a real tag fits', () => {
+    expect(parseCapture('Pay the Xfinity bill', NOW).patch.tags).not.toContain('unsorted')
+    expect(parseCapture('Deal with the parking ticket', NOW).patch.tags).toContain('admin')
+    expect(parseCapture('Figure out the wifi situation', NOW).patch.tags).toContain('admin')
+  })
+
+  it('does not mistake a power tool for a drill weekend', () => {
+    expect(parseCapture('Return the drill', NOW).patch.tags).not.toContain('army')
+    expect(parseCapture('Pack for drill weekend', NOW).patch.tags).toContain('army')
+  })
+})
+
 describe('safety', () => {
   it('always produces a non-empty title', () => {
     for (const s of ['tomorrow', '2 hours', '#army', 'x']) {

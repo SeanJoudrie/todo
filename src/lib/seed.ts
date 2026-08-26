@@ -10,7 +10,7 @@ export const newId = () =>
  * new list on next open; anything you've actually used is left alone.
  * See `shouldReseed`.
  */
-export const SEED_VERSION = 3
+export const SEED_VERSION = 4
 
 type SeedSpec = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'priority' | 'seed' | 'subtasks'> &
   Partial<Pick<Task, 'status' | 'priority'>> & { steps?: string[] }
@@ -25,7 +25,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'They said Thursday, it went quiet, and you have been chewing on it. A short warm email asking where things ' +
         'landed is normal and costs you nothing.',
-      tags: ['career'],
+      tags: ['career', 'money'],
       dueDate: today,
       estimateMinutes: 20,
       estimateConfidence: 'guess',
@@ -39,7 +39,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Reapply for the military grant',
       notes: 'Missed the signing window on a document last time. Find the new deadline first — that decides everything else.',
-      tags: ['army', 'money'],
+      tags: ['army', 'money', 'admin'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -50,7 +50,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Call about the blocked army forms',
       notes: "You can't fill them in — they're blocked. One call to the right person unblocks a whole pile.",
-      tags: ['army'],
+      tags: ['army', 'admin'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -61,7 +61,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'They already called you. Worth knowing: OneSource includes free confidential non-medical counseling and ' +
         'financial counseling, separate from anything that touches your record.',
-      tags: ['army', 'health'],
+      tags: ['army', 'health', 'money'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -72,7 +72,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'Do this as part of the move rather than twice. Lay it all out, find what is missing, and that list becomes ' +
         'the shopping task below.',
-      tags: ['army', 'home'],
+      tags: ['army', 'home', 'house'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -81,7 +81,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Buy the missing army gear',
       notes: 'Underwear, socks, whatever else is short.',
-      tags: ['army', 'money'],
+      tags: ['army', 'money', 'admin'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -92,7 +92,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Blocked until you have actually moved and the new address is real. Easy to forget once the ` +
         'move is over, and annoying when it bites — pay, orders and mail all key off it.',
-      tags: ['army', 'admin'],
+      tags: ['army', 'admin', 'house'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -102,7 +102,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Guard service can open VA healthcare or a claim depending on your status and orders. ` +
         'Given the exhaustion with no answer, worth an hour to find out rather than assume.',
-      tags: ['va', 'health'],
+      tags: ['va', 'health', 'money'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -115,7 +115,7 @@ function specs(today: string): SeedSpec[] {
         `${SUGGESTED} You joined partly for work. These are real full-time jobs inside the org you are already in, ` +
         'and they are not posted where you have been looking. Start with your unit admin or readiness NCO — they ' +
         'know what is open before it is listed anywhere.',
-      tags: ['army', 'career'],
+      tags: ['army', 'career', 'money'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -129,7 +129,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'A warm introduction beats a hundred cold applications, and this is the only warm one on the list. Ask what ' +
         'they are actually hiring for and whether he will put your name in, not just for general advice.',
-      tags: ['career', 'people'],
+      tags: ['career', 'people', 'money'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -141,7 +141,7 @@ function specs(today: string): SeedSpec[] {
         `${SUGGESTED} You have put ~1000 hours into one channel. This is a different channel, not more hours in the ` +
         'same one — veteran preference on USAJOBS and state listings is a real, underused edge. First step is ' +
         'finding which preference category you qualify for; that determines everything after it.',
-      tags: ['career'],
+      tags: ['career', 'army'],
       estimateMinutes: 90,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -151,7 +151,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Look into SkillBridge / veteran hiring programs',
       notes: SUGGESTED,
-      tags: ['career'],
+      tags: ['career', 'army'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -162,7 +162,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Eight to twelve hours a day for a year and a half with this little back is not a discipline ` +
         'problem, it is a burnout problem. A cap protects the hours you would spend on the app and the content.',
-      tags: ['career', 'health'],
+      tags: ['career', 'health', 'growth'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -172,7 +172,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Get the car diagnosed',
       notes: "You don't know what's wrong yet — a diagnostic is the actual first step and it's cheap. Repair is separate.",
-      tags: ['admin'],
+      tags: ['admin', 'money'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -227,7 +227,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Call AMC about the missing veteran discount',
       notes: 'Charged $40 instead of the discounted price, which triggered the overdraft.',
-      tags: ['money', 'admin'],
+      tags: ['money', 'admin', 'army'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
       contexts: ['phone'],
@@ -237,7 +237,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Banks routinely waive a first overdraft fee if you call and ask. One call, and it works far ` +
         'better soon after it happened than a month later. Ask plainly: it was a one-off, can you reverse it.',
-      tags: ['money'],
+      tags: ['money', 'admin'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -248,7 +248,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Do this before hiring anyone. Emergency fund, moving costs, washer/dryer, LA trip, runway while ` +
         'job hunting — splitting it into named buckets is most of what an advisor does in the first meeting anyway.',
-      tags: ['money'],
+      tags: ['money', 'admin'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -257,7 +257,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Find a financial advisor',
       notes: 'Ask specifically for fee-only / fiduciary. Military OneSource also offers free financial counseling.',
-      tags: ['money'],
+      tags: ['money', 'admin'],
       estimateMinutes: 90,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -268,7 +268,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'You used something like the Affordable Connectivity Program before. Check what replaced it, plus Lifeline, ' +
         'utility hardship rates, and any veteran or low-income discounts your providers run.',
-      tags: ['money', 'admin'],
+      tags: ['money', 'admin', 'home'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -277,7 +277,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Cancel subscriptions you are not using',
       notes: SUGGESTED,
-      tags: ['money'],
+      tags: ['money', 'admin'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -299,7 +299,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'The event everything else is waiting on — eight other tasks unblock the day this is done. Two bedrooms into ' +
         'one, so what you get rid of beforehand decides how bad the day itself is. Put the real date on this.',
-      tags: ['house', 'home'],
+      tags: ['house', 'home', 'admin'],
       pinned: true,
       estimateMinutes: 600,
       estimateConfidence: 'guess',
@@ -318,7 +318,7 @@ function specs(today: string): SeedSpec[] {
         `${SUGGESTED} You said you cannot fight it because of the roommate, and that may well be right — but a free ` +
         'tenant-rights or legal-aid consult is confidential and would tell you your actual exposure instead of you ' +
         'guessing. Worth an hour even if the answer is to let it go.',
-      tags: ['house', 'admin'],
+      tags: ['house', 'admin', 'money'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -331,7 +331,7 @@ function specs(today: string): SeedSpec[] {
         'You said it yourself — too much stuff, and you are losing a bedroom. Do this before packing, not after: ' +
         'every box you do not pack is one you do not carry twice. Pair it with selling the clothes below.',
       priority: 'high',
-      tags: ['home'],
+      tags: ['home', 'house'],
       estimateMinutes: 240,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -343,7 +343,7 @@ function specs(today: string): SeedSpec[] {
         'Blocked: measure the space and check what hookups the new unit actually has before you spend anything. ' +
         'Buying the wrong size is an expensive mistake to undo.',
       status: 'waiting',
-      tags: ['home', 'money'],
+      tags: ['home', 'money', 'house'],
       estimateMinutes: 90,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -354,7 +354,7 @@ function specs(today: string): SeedSpec[] {
         'One spot to work, one to train, one to actually rest. Blocked until you are in there — but do it on move-in ' +
         'day, before habits form on their own and the good spot becomes where the laundry lives.',
       status: 'waiting',
-      tags: ['home', 'growth'],
+      tags: ['home', 'growth', 'house'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -364,7 +364,7 @@ function specs(today: string): SeedSpec[] {
       title: 'Get renters insurance for the new unit',
       notes: `${SUGGESTED} Usually cheap, often required, and you need the new address to quote it. Blocked until you move.`,
       status: 'waiting',
-      tags: ['home', 'admin', 'money'],
+      tags: ['home', 'admin', 'money', 'house'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -376,7 +376,7 @@ function specs(today: string): SeedSpec[] {
         'night beats a four-hour blowout on a Saturday, and a one-bedroom goes from fine to unbearable much faster ' +
         'than a two did.',
       status: 'waiting',
-      tags: ['home'],
+      tags: ['home', 'growth'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -390,7 +390,7 @@ function specs(today: string): SeedSpec[] {
         'You have two ideas and the fork is what is stopping you. The community-built app series is the more ' +
         'distinctive one — nobody else can make it, it shows your actual work, and it has a built-in reason to comment. ' +
         'The yapping series is easier to sustain. Pick one, post three, then decide. Do not decide first.',
-      tags: ['content', 'growth'],
+      tags: ['content', 'growth', 'career'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -402,7 +402,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'Separate from your personal account. That is most of the answer to being perceived by people you knew seven ' +
         'years ago — a new account has no audience to disappoint.',
-      tags: ['content'],
+      tags: ['content', 'career'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -414,7 +414,7 @@ function specs(today: string): SeedSpec[] {
         'Blocked until you have picked a series and made the account — both are above this. After that, the real ' +
         'blocker is being perceived by people you knew seven years ago, not the filming. Three posts is the ' +
         'smallest number that tells you anything true about whether this works.',
-      tags: ['content'],
+      tags: ['content', 'growth'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -436,7 +436,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         `${SUGGESTED} Your own pattern is post-a-lot then post-nothing. A floor you can hit on a bad week beats a ` +
         'target you abandon.',
-      tags: ['content'],
+      tags: ['content', 'growth'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
     },
@@ -445,7 +445,7 @@ function specs(today: string): SeedSpec[] {
       notes:
         'Your own project, separate from the community-request one. Worth naming the next concrete thing to build ' +
         'here, or it stays a mood rather than a task and never gets picked.',
-      tags: ['career', 'growth'],
+      tags: ['career', 'growth', 'content'],
       estimateMinutes: 180,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -457,7 +457,7 @@ function specs(today: string): SeedSpec[] {
         'Parked on purpose. Nothing here has traction yet and it competes with the content, which pays sooner and ' +
         'builds an audience the book would need anyway. Pull it back out when you know what it is actually about.',
       status: 'someday',
-      tags: ['growth'],
+      tags: ['growth', 'content'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       effort: 'deep',
@@ -470,7 +470,7 @@ function specs(today: string): SeedSpec[] {
         `${SUGGESTED} "No answer" usually means the obvious panel was not run. Ask specifically about thyroid (TSH), ` +
         'ferritin/iron, vitamin D, B12, A1c, and a sleep apnea screen. Being deathly exhausted every day is a symptom, ' +
         'not a personality trait.',
-      tags: ['health'],
+      tags: ['health', 'admin'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
       priority: 'high',
@@ -482,14 +482,14 @@ function specs(today: string): SeedSpec[] {
       notes:
         'You ruck 12 miles under load without training for it — you are not lazy, you are undertrained and running on ' +
         'empty. Two short sessions a week you actually do beats a daily plan you do not.',
-      tags: ['health'],
+      tags: ['health', 'army'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
     },
     {
       title: 'Eat breakfast',
       notes: 'You skip it because you are hungry, which is worth noticing. Something small and automatic.',
-      tags: ['health'],
+      tags: ['health', 'home'],
       estimateMinutes: 10,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -498,7 +498,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Sort out a sleep schedule',
       notes: `${SUGGESTED} Relevant to the exhaustion, and free to try before any appointment.`,
-      tags: ['health'],
+      tags: ['health', 'growth'],
       estimateMinutes: 20,
       estimateConfidence: 'guess',
     },
@@ -507,7 +507,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: "Talk to Sarah's dad",
       notes: 'Add what it is about while you still remember, or this becomes a line you cannot decode in three weeks.',
-      tags: ['people'],
+      tags: ['people', 'admin'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
       contexts: ['phone'],
@@ -515,7 +515,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Reply to the messages you fell behind on',
       notes: `${SUGGESTED} You said you have a backlog. One sitting, no apologies required.`,
-      tags: ['people'],
+      tags: ['people', 'growth'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -525,7 +525,7 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Sell a bunch of your clothes',
       notes: 'Pairs with the purge before the move.',
-      tags: ['home', 'money'],
+      tags: ['home', 'money', 'house'],
       estimateMinutes: 180,
       estimateConfidence: 'guess',
       effort: 'light',
@@ -535,7 +535,7 @@ function specs(today: string): SeedSpec[] {
       title: 'Build the new wardrobe',
       status: 'someday',
       notes: 'The uniform you described: ~10 college shirts, ~10 suit jackets, ~10 sweaters. Same thing, different variety.',
-      tags: ['admin', 'money'],
+      tags: ['admin', 'money', 'career'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
       contexts: ['computer'],
@@ -545,14 +545,14 @@ function specs(today: string): SeedSpec[] {
     {
       title: 'Get out of Wakefield',
       notes: 'Downstream of income. Parked here on purpose so it stops feeling like a daily failure.',
-      tags: ['house', 'growth'],
+      tags: ['house', 'growth', 'money'],
       status: 'someday',
       effort: 'deep',
     },
     {
       title: 'Figure out the digital-nomad version of this',
       notes: 'Guard service constrains it, it does not kill it. Worth revisiting once there is income.',
-      tags: ['growth', 'fun'],
+      tags: ['growth', 'fun', 'career'],
       status: 'someday',
       effort: 'deep',
     },

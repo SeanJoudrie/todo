@@ -2,6 +2,9 @@ import * as chrono from 'chrono-node'
 import type { Effort, Priority, Task, TaskContext } from '../types'
 import { toISODate } from './dates'
 
+/** Fallback when nothing else matched. Never leave a task unfindable. */
+export const UNSORTED_TAG = 'unsorted'
+
 export type ChipKind =
   | 'dueDate'
   | 'targetDate'
@@ -96,7 +99,8 @@ function extractDuration(text: string): { minutes: number; guess: boolean; spans
 /* -------------------------------------------------------------------------- */
 
 const TAG_KEYWORDS: Record<string, RegExp> = {
-  army: /\b(army|ocs|ucmj|drill|acft|pt test|uniform|guard|reserve|ncoer|oer|platoon|battalion|formation|milpo|ippsa)\b/i,
+  // No bare "drill" — "return the drill" is a power tool, not a drill weekend.
+  army: /\b(army|ocs|ucmj|drill weekend|battle assembly|acft|pt test|uniform|national guard|ncoer|oer|platoon|battalion|formation|milpo|ippsa)\b/i,
   va: /\b(va|veterans affairs|disability|claim|c&p|benefits|gi bill)\b/i,
   house: /\b(house|mortgage|realtor|closing|escrow|apartment|lease|landlord|move|moving|pack(?:ing)?|walkthrough)\b/i,
   career: /\b(linkedin|resume|cv|network(?:ing)?|interview|portfolio|cert(?:ification)?|recruiter|job search)\b/i,
@@ -107,7 +111,7 @@ const TAG_KEYWORDS: Record<string, RegExp> = {
   people: /\b(dad|mom|mother|father|brother|sister|friend|wife|girlfriend|boyfriend|husband|birthday|grandma|grandpa)\b/i,
   health: /\b(gym|doctor|dentist|workout|run|lift|meal|healthy food|nutrition|therapy|sleep|prescription)\b/i,
   home: /\b(laundry|clean|dishes|vacuum|trash|mow|tidy|living room|kitchen|garage|yard|fix the)\b/i,
-  admin: /\b(mechanic|dmv|insurance|bill|taxes|bank|registration|renew|appointment|paperwork|passport)\b/i,
+  admin: /\b(mechanic|dmv|insurance|bill|taxes|bank|registration|renew|appointment|paperwork|passport|ticket|fine|citation|wi-?fi|internet|cable|utility|utilities|license|permit|subscription|refund|warranty|account)\b/i,
 }
 
 const CONTEXT_KEYWORDS: Record<TaskContext, RegExp> = {
@@ -265,7 +269,14 @@ export function parseCapture(raw: string, now = new Date()): ParseResult {
     }
   }
 
-  if (tags.length > 0) patch.tags = tags
+  // A task with no tag is invisible to every filter, so it always gets one.
+  // `unsorted` is deliberate rather than a forced wrong guess — you can filter
+  // by it to find everything still needing a real home.
+  if (tags.length === 0) {
+    tags.push(UNSORTED_TAG)
+    chips.push({ id: chipId(), kind: 'tag', label: `#${UNSORTED_TAG}`, value: UNSORTED_TAG })
+  }
+  patch.tags = tags
 
   const title = tidy(working) || original
   return { title, patch, chips }

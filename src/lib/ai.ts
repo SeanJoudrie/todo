@@ -1,6 +1,7 @@
 import type { Priority, TagDef, TaskContext } from '../types'
 import { CONTEXTS, PRIORITIES } from '../types'
 import { todayISO } from './dates'
+import { UNSORTED_TAG } from './parse'
 import type { Draft } from './organize'
 import { newId } from './seed'
 
@@ -43,7 +44,8 @@ function systemPrompt(tags: TagDef[], now: Date): string {
     '- Titles are short imperative phrases. Strip all filler: "so um I have to", "I\'ll get back to it",',
     '  "I don\'t know". "I have to do an army presentation I think Tuesday" becomes "Do an army presentation".',
     '- ALWAYS assign at least one tag. Guess from the available list rather than leaving it empty —',
-    '  a wrong guess is easy to fix, a missing one is not. Only invent a new tag if nothing fits at all.',
+    '  a wrong guess is easy to fix, a missing one is not. If genuinely nothing fits, use "unsorted"',
+    '  rather than an empty list, so the task is still findable.',
     '- dueDate is a HARD deadline with a real consequence. targetDate is a soft "I want it done by".',
     '  "Teaching it Monday but want it ready Sunday" means dueDate Monday, targetDate Sunday.',
     '  Use YYYY-MM-DD. Empty string when there is no date. Never invent a date that was not implied.',
@@ -118,7 +120,10 @@ function toDraft(raw: RawTask, source: string): Draft | null {
     uncertain: Boolean(raw.uncertain),
     patch: {
       ...(raw.notes?.trim() ? { notes: raw.notes.trim() } : {}),
-      ...(raw.tags?.length ? { tags: raw.tags.map((t) => t.toLowerCase().trim()).filter(Boolean) } : {}),
+      tags: (() => {
+        const clean = (raw.tags ?? []).map((t) => t.toLowerCase().trim()).filter(Boolean)
+        return clean.length > 0 ? clean : [UNSORTED_TAG]
+      })(),
       ...(ISO_DATE.test(raw.dueDate ?? '') ? { dueDate: raw.dueDate } : {}),
       ...(ISO_DATE.test(raw.targetDate ?? '') ? { targetDate: raw.targetDate } : {}),
       ...(raw.estimateMinutes > 0

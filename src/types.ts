@@ -83,7 +83,6 @@ export const DEFAULT_TAGS: TagDef[] = [
   { id: 'va', label: 'va', color: '#26608f' },
   { id: 'house', label: 'house', color: '#9c5a26' },
   { id: 'career', label: 'career', color: '#6b4bb0' },
-  { id: 'current-job', label: 'current-job', color: '#396a86' },
   { id: 'money', label: 'money', color: '#0f6b7a' },
   { id: 'content', label: 'content', color: '#8f3a9e' },
   { id: 'growth', label: 'growth', color: '#1f7a66' },
@@ -92,4 +91,5 @@ export const DEFAULT_TAGS: TagDef[] = [
   { id: 'health', label: 'health', color: '#2f7a3d' },
   { id: 'home', label: 'home', color: '#5c6070' },
   { id: 'admin', label: 'admin', color: '#7a5a2e' },
+  { id: 'unsorted', label: 'unsorted', color: '#6e6a62' },
 ]
