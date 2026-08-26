@@ -42,7 +42,10 @@ const isSnoozed = (t: Task, now: string) => isOutstanding(t) && !notSnoozed(t, n
 function Shell() {
   const store = useStore()
   const { tasks, tags } = store
-  const [view, setView] = useState<View>('today')
+  const [view, setView] = useState<View>(() => {
+    const stored = store.settings.lastView
+    return (VIEWS.some((v) => v.id === stored) ? stored : 'all') as View
+  })
   const [planner, setPlanner] = useState(false)
   const [organize, setOrganize] = useState(false)
   const [settings, setSettings] = useState(false)
@@ -105,6 +108,20 @@ function Shell() {
     return tags.filter((t) => present.has(t.id))
   }, [active, tags])
 
+  const doneTasks = useMemo(() => tasks.filter((t) => t.status === 'done'), [tasks])
+
+  const tally = useMemo(
+    () => ({
+      today: dueNow.length + nextUp.length + waitingTasks.length + snoozedTasks.length,
+      all: outstanding.length,
+      tags: outstanding.length,
+      someday: somedayTasks.length,
+      done: doneTasks.length,
+      total: tasks.length,
+    }),
+    [dueNow, nextUp, waitingTasks, snoozedTasks, outstanding, somedayTasks, doneTasks, tasks],
+  )
+
   const overdueCount = active.filter((t) => {
     const eff = effectiveDate(t)
     return eff !== undefined && eff < today
@@ -134,17 +151,58 @@ function Shell() {
             <button
               key={v.id}
               type="button"
-              onClick={() => setView(v.id)}
+              onClick={() => {
+                setView(v.id)
+                store.setSettings({ lastView: v.id })
+              }}
               aria-current={view === v.id}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-sm transition-colors ${
                 view === v.id ? 'bg-surface-3 font-medium text-ink' : 'text-muted hover:text-ink'
               }`}
             >
               {v.label}
+              <span className="meta ml-1 text-faint tabular-nums">{tally[v.id]}</span>
             </button>
           ))}
         </nav>
       </header>
+
+      <div className="meta flex items-center gap-2 border-b border-line bg-surface-2/60 px-4 py-1.5 text-muted">
+        <span>
+          <strong className="font-semibold text-ink tabular-nums">{tally.all}</strong> to do
+        </span>
+        <span className="text-faint">·</span>
+        <span className="tabular-nums">{tally.someday} someday</span>
+        <span className="text-faint">·</span>
+        <span className="tabular-nums">{tally.done} done</span>
+        <span className="ml-auto text-faint tabular-nums">{tally.total} total</span>
+      </div>
+
+          {store.settings.seedVersion < SEED_VERSION && (
+            <div className="animate-rise mx-3 mt-3 rounded-xl border border-accent/50 bg-accent-wash p-3">
+              <p className="text-sm leading-snug">
+                <strong className="font-medium">Your list is out of date.</strong> There's a newer version of your
+                real task list waiting.
+              </p>
+              <p className="meta mt-1 text-muted">
+                Nothing you've added, finished or edited will be touched — only untouched sample tasks are cleared.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const previous = store.fullState
+                  const { added, removed } = store.loadLatestSeed()
+                  store.pushToast(
+                    `Loaded ${added} tasks${removed > 0 ? `, cleared ${removed} samples` : ''}`,
+                    () => store.replaceAll(previous),
+                  )
+                }}
+                className="mt-2.5 w-full rounded-lg bg-accent py-2.5 text-sm font-medium text-on-accent active:scale-[0.99]"
+              >
+                Load my real list
+              </button>
+            </div>
+          )}
 
       <CaptureBar inputRef={captureRef} />
 
@@ -161,32 +219,6 @@ function Shell() {
       <main className="flex-1 pb-28">
         {view === 'today' && (
           <>
-            {store.settings.seedVersion < SEED_VERSION && (
-              <div className="animate-rise mx-3 mt-3 rounded-xl border border-accent/50 bg-accent-wash p-3">
-                <p className="text-sm leading-snug">
-                  <strong className="font-medium">Your list is out of date.</strong> There's a newer version of your
-                  real task list waiting.
-                </p>
-                <p className="meta mt-1 text-muted">
-                  Nothing you've added, finished or edited will be touched — only untouched sample tasks are cleared.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const previous = store.fullState
-                    const { added, removed } = store.loadLatestSeed()
-                    store.pushToast(
-                      `Loaded ${added} tasks${removed > 0 ? `, cleared ${removed} samples` : ''}`,
-                      () => store.replaceAll(previous),
-                    )
-                  }}
-                  className="mt-2.5 w-full rounded-lg bg-accent py-2.5 text-sm font-medium text-on-accent active:scale-[0.99]"
-                >
-                  Load my real list
-                </button>
-              </div>
-            )}
-
             <div className="grid grid-cols-2 gap-2 px-3 pt-3">
               <button
                 type="button"
@@ -329,7 +361,7 @@ function Shell() {
           </>
         )}
 
-        {view === 'done' && <CompletedSection tasks={tasks} defaultOpen />}
+        {view === 'done' && <CompletedSection tasks={tasks} archive />}
       </main>
 
       {/* Thumb-reachable capture */}

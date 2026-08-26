@@ -5,8 +5,17 @@ import { Icon } from './ui'
 import { TaskList } from './TaskRow'
 
 /** Completed work lives at the bottom. Seeing the pile is the whole point. */
-export function CompletedSection({ tasks, defaultOpen = false }: { tasks: Task[]; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen)
+export function CompletedSection({
+  tasks,
+  defaultOpen = false,
+  /** The Done tab: a full archive, always open, no drawer to fight with. */
+  archive = false,
+}: {
+  tasks: Task[]
+  defaultOpen?: boolean
+  archive?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen || archive)
   const today = todayISO()
   // Fixed at mount so the "this week" line doesn't shift under a re-render.
   const [weekAgo] = useState(() => new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10))
@@ -27,9 +36,43 @@ export function CompletedSection({ tasks, defaultOpen = false }: { tasks: Task[]
   }, [tasks, weekAgo])
 
   const total = groups.reduce((n, [, list]) => n + list.length, 0)
+
+  if (archive && total === 0) {
+    return (
+      <div className="px-4 py-14 text-center">
+        <p className="text-sm text-muted">Nothing finished yet.</p>
+        <p className="mt-1 text-xs text-faint">Tick something off and it lands here for good.</p>
+      </div>
+    )
+  }
   if (total === 0) return null
 
   const weekMinutes = thisWeek.reduce((n, t) => n + (t.estimateMinutes ?? 0), 0)
+
+  if (archive) {
+    return (
+      <section>
+        <div className="label flex items-center gap-2 border-b border-line bg-surface-2/70 px-4 py-2.5 text-faint">
+          <span>
+            <strong className="text-ink tabular-nums">{total}</strong> finished, all time
+          </span>
+          {thisWeek.length > 0 && (
+            <span className="ml-auto tabular-nums">
+              {thisWeek.length} this week{weekMinutes > 0 && ` · ${formatDuration(weekMinutes, false)}`}
+            </span>
+          )}
+        </div>
+        {groups.map(([day, list]) => (
+          <div key={day}>
+            <div className="label bg-surface-2/40 px-4 py-2 text-faint">
+              {formatDate(day, today)} — {list.length}
+            </div>
+            <TaskList tasks={list} today={today} />
+          </div>
+        ))}
+      </section>
+    )
+  }
 
   return (
     <section className="mt-6 border-t border-line">

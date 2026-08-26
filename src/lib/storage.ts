@@ -21,6 +21,8 @@ export type Settings = {
   seedVersion: number
   /** Last chosen list ordering, so it survives a reload. */
   lastSort: string
+  /** Last tab opened. Defaults to All — seeing everything is the point. */
+  lastView: string
 }
 
 export type AppState = {
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   seedInstalled: false,
   seedVersion: 0,
   lastSort: 'smart',
+  lastView: 'all',
 }
 
 export function emptyState(): AppState {

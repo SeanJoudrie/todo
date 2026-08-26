@@ -67,6 +67,10 @@ await page.waitForTimeout(300)
 const seeded = await titles()
 check('ships a starting list', seeded.length > 20, `got ${seeded.length}`)
 
+const openingTab = await page.locator('nav button[aria-current="true"]').innerText()
+check('opens showing everything, not just today', /^All/.test(openingTab), openingTab.replace(/\n/g, ' '))
+check('tabs carry a count', /All\s*\d+/.test(openingTab.replace(/\n/g, ' ')), openingTab.replace(/\n/g, ' '))
+
 // Capture round-trip
 await box().fill('Call the VA about my claim tomorrow 30 min')
 await page.waitForTimeout(200)
@@ -129,6 +133,8 @@ await page.waitForTimeout(250)
 check('reopening restores it', (await titles()).some((t) => t.startsWith(victim)))
 
 // Planner
+await page.getByRole('button', { name: /^Today/ }).click()
+await page.waitForTimeout(250)
 await page.getByRole('button', { name: 'What now?' }).click()
 await page.waitForTimeout(400)
 const planText = await page.getByRole('dialog').innerText()
@@ -228,7 +234,7 @@ const doneKept = await page.evaluate(() => {
 check('completed work survives the recovery', doneKept)
 
 // Sorting must work on Today, not only on All.
-await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(300)
 const firstUnder = async (label) => {
   await page.getByRole('button', { name: label, exact: true }).click()
@@ -242,7 +248,7 @@ check('sorting by time works on Today', quickestFirst !== longestFirst, `${quick
 // Read the real durations off a flat list and prove the ordering, rather than
 // just that something moved.
 const minutesInOrder = async (label) => {
-  await page.getByRole('button', { name: 'All', exact: true }).click()
+  await page.getByRole('button', { name: /^All/ }).click()
   await page.waitForTimeout(250)
   await page.getByRole('button', { name: label, exact: true }).click()
   await page.waitForTimeout(400)
@@ -269,7 +275,7 @@ await page.getByRole('button', { name: 'importance', exact: true }).click()
 await page.waitForTimeout(400)
 const byImportance = (await titles())[0]
 check('importance leads with the pinned work', /employer|Move downstairs/.test(byImportance), byImportance.split('\n')[0])
-await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(250)
 
 // The choice has to survive a reload, or it is not a setting.
@@ -283,10 +289,12 @@ await firstUnder('smart')
 
 // Regression: snoozing used to remove a task from every view at once, so
 // tapping "not today" a few times looked exactly like the list being cut.
-await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.getByRole('button', { name: /^All/ }).click()
 await page.waitForTimeout(300)
 const beforeSnooze = (await titles()).length
-await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.getByRole('button', { name: /^Today/ }).click()
+await page.waitForTimeout(250)
+await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(250)
 await page.getByRole('button', { name: 'What now?' }).click()
 await page.waitForTimeout(500)
@@ -300,7 +308,7 @@ for (let i = 0; i < 4; i++) {
 }
 await page.keyboard.press('Escape')
 await page.waitForTimeout(400)
-await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.getByRole('button', { name: /^All/ }).click()
 await page.waitForTimeout(350)
 const afterSnooze = (await titles()).length
 check(
@@ -308,7 +316,7 @@ check(
   snoozedCount > 0 && afterSnooze === beforeSnooze,
   `${beforeSnooze} -> ${afterSnooze} after ${snoozedCount} snoozes`,
 )
-await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(350)
 const todayText = await page.locator('main').innerText()
 check('today shows what was snoozed', /snoozed \(/i.test(todayText))
@@ -317,16 +325,16 @@ await page.waitForTimeout(500)
 check('wake all brings them back', !/snoozed \(/i.test(await page.locator('main').innerText()))
 
 // Regression: a task marked "waiting" used to vanish from every single view.
-await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.getByRole('button', { name: /^All/ }).click()
 await page.waitForTimeout(300)
 const blockedRow = (await titles()).find((t) => /waiting/.test(t))
 check('blocked tasks are still listed', Boolean(blockedRow), blockedRow?.split('\n')[0])
 
-await page.getByRole('button', { name: 'Someday', exact: true }).click()
+await page.getByRole('button', { name: /^Someday/ }).click()
 await page.waitForTimeout(300)
 const somedayCount = await page.locator('main li > div > button[aria-expanded]').count()
 check('someday holds only what was parked there', somedayCount > 0 && somedayCount < 12, `${somedayCount} rows`)
-await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(300)
 check('today calls out what is blocked', /blocked/i.test(await page.locator('main').innerText()))
 
@@ -368,6 +376,12 @@ check('photo survives a reload', (await page.getByRole('button', { name: 'View p
 await page.locator('main li button[aria-expanded]').first().click()
 await page.waitForTimeout(200)
 
+// The counts are the whole trust story: the total must never drop.
+const totalNow = () => page.evaluate(() => JSON.parse(localStorage.getItem('todo.state.v1')).tasks.length)
+const beforeTicking = await totalNow()
+const strip = await page.locator('div.meta').first().innerText()
+check('the header shows real numbers', /\d+\s*to do/.test(strip.replace(/\n/g, ' ')), strip.replace(/\n/g, ' '))
+
 // Finishing something must stick, whatever happens to the task list afterwards.
 let ticked = 0
 for (let i = 0; i < 5; i++) {
@@ -396,6 +410,12 @@ await page.waitForTimeout(1100)
 const backAgain = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('todo.state.v1')).tasks.filter((t) => t.status === 'done').map((t) => t.title))
 const missing = markedDone.filter((t) => !backAgain.includes(t))
+check(
+  'finishing tasks never reduces the total',
+  (await totalNow()) === beforeTicking,
+  `${beforeTicking} -> ${await totalNow()}`,
+)
+
 check(
   'completions survive the entire task list being destroyed',
   markedDone.length > 0 && missing.length === 0,
