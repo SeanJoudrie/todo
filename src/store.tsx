@@ -117,6 +117,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         patchTask(id, { snoozedUntil: until.toISOString() })
       },
 
+      attachPhoto(taskId, photoId) {
+        setState((s) => ({
+          ...s,
+          tasks: s.tasks.map((t) =>
+            t.id === taskId ? { ...t, photos: [...(t.photos ?? []), photoId], updatedAt: stamp() } : t,
+          ),
+        }))
+      },
+
+      detachPhoto(taskId, photoId) {
+        setState((s) => ({
+          ...s,
+          tasks: s.tasks.map((t) =>
+            t.id === taskId ? { ...t, photos: (t.photos ?? []).filter((p) => p !== photoId), updatedAt: stamp() } : t,
+          ),
+        }))
+      },
+
       addSubtask(taskId, title) {
         patchTaskSubtasks(taskId, (subs) => [...subs, { id: newId(), title, done: false }])
       },

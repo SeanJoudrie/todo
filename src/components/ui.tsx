@@ -55,6 +55,12 @@ export function Icon({ name, className = 'w-4 h-4' }: { name: string; className?
         <path d="M7.5 7.5h5l-5 5h5" />
       </>
     ),
+    camera: (
+      <>
+        <path d="M2.5 6.8h3.1l1.2-1.9h6.4l1.2 1.9h3.1v8.4h-15z" />
+        <circle cx="10" cy="10.8" r="2.9" />
+      </>
+    ),
     sparkle: (
       <>
         <path d="M8 2.5 9.3 6.2 13 7.5 9.3 8.8 8 12.5 6.7 8.8 3 7.5l3.7-1.3z" />

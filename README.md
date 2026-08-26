@@ -29,6 +29,9 @@ The full spec it was built from is in [`PROMPT.md`](./PROMPT.md).
 - **"What should I do today?"** Tell it how much time you have, roughly what kind of energy, and
   optionally a focus. It returns an ordered run with clock times, and every line says why it's
   there. Deterministic and offline — no API key, no waiting.
+- **Photos on any task.** Open a task and hit the camera — snap one or pick from the library. Good
+  for the cracked windshield, a form you need to remember, a receipt. They're shrunk on the way in
+  so a hundred of them still cost less than one raw phone photo, and they ride along in your backup.
 - **Completed work stays visible** at the bottom of the list, grouped by day.
 
 Light, monospaced where it counts, and built to be read one-handed on a phone.
@@ -78,6 +81,7 @@ self-contained `dist-single/index.html` if you'd rather have one file.
 
 ## Your data
 
-Everything lives in this browser's `localStorage` and goes nowhere else. There's no account, no
+Tasks live in this browser's `localStorage`; photos live in IndexedDB alongside them. Nothing goes
+anywhere else. There's no account, no
 server, no sync. **Export a JSON backup now and then** (Settings → export) — it's the only copy.
 The app also keeps the last 10 auto-saves, restorable from Settings.

@@ -32,6 +32,9 @@ export type Task = {
 
   subtasks?: Subtask[]
 
+  /** IndexedDB ids, not image data. See `lib/photos.ts`. */
+  photos?: string[]
+
   createdAt: string
   updatedAt: string
   completedAt?: string

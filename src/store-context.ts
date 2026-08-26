@@ -19,6 +19,9 @@ export type Store = {
   togglePin: (id: string) => void
   snooze: (id: string, until: Date) => void
 
+  attachPhoto: (taskId: string, photoId: string) => void
+  detachPhoto: (taskId: string, photoId: string) => void
+
   addSubtask: (taskId: string, title: string) => void
   updateSubtask: (taskId: string, subId: string, patch: Partial<Subtask>) => void
   removeSubtask: (taskId: string, subId: string) => void

@@ -1,6 +1,51 @@
 // End-to-end smoke test against a running `npm run preview`.
 //   npm run build && npm run preview &  then  npm run e2e
 import { chromium } from 'playwright'
+import { deflateSync } from 'node:zlib'
+
+/** A real PNG, bigger than the 1600px cap, so the downscale path is exercised. */
+function testPhoto(w = 1800, h = 1200) {
+  const raw = Buffer.alloc(h * (w * 4 + 1))
+  for (let y = 0; y < h; y++) {
+    const row = y * (w * 4 + 1)
+    for (let x = 0; x < w; x++) {
+      const o = row + 1 + x * 4
+      raw[o] = (x * 255) / w
+      raw[o + 1] = (y * 255) / h
+      raw[o + 2] = 140
+      raw[o + 3] = 255
+    }
+  }
+  const table = Array.from({ length: 256 }, (_, n) => {
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    return c >>> 0
+  })
+  const crc = (b) => {
+    let c = 0xffffffff
+    for (const x of b) c = table[(c ^ x) & 0xff] ^ (c >>> 8)
+    return (c ^ 0xffffffff) >>> 0
+  }
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4)
+    len.writeUInt32BE(data.length)
+    const body = Buffer.concat([Buffer.from(type), data])
+    const c = Buffer.alloc(4)
+    c.writeUInt32BE(crc(body))
+    return Buffer.concat([len, body, c])
+  }
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(w, 0)
+  ihdr.writeUInt32BE(h, 4)
+  ihdr[8] = 8
+  ihdr[9] = 6
+  return Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(raw, { level: 1 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
 
 const BASE = process.env.E2E_URL ?? 'http://localhost:4173/'
 const browser = await chromium.launch(
@@ -147,6 +192,44 @@ check(
   ['army presentation', 'mechanic', 'LinkedIn'].every((t) => afterOrganize.some((x) => x.includes(t))),
   `${afterOrganize.length} rows`,
 )
+
+// Photos: attach, shrink, persist, and never bloat localStorage.
+await page.locator('main li button[aria-expanded]').first().click()
+await page.waitForTimeout(300)
+await page
+  .locator('input[type="file"][accept="image/*"]')
+  .setInputFiles({ name: 'shot.png', mimeType: 'image/png', buffer: testPhoto() })
+await page.waitForTimeout(1800)
+check('a photo attaches to a task', (await page.getByRole('button', { name: 'View photo' }).count()) === 1)
+
+const shot = await page.evaluate(async () => {
+  const db = await new Promise((res) => {
+    const r = indexedDB.open('todo-photos', 1)
+    r.onsuccess = () => res(r.result)
+    r.onerror = () => res(null)
+  })
+  if (!db) return null
+  const all = await new Promise((res) => {
+    const r = db.transaction('photos').objectStore('photos').getAll()
+    r.onsuccess = () => res(r.result)
+    r.onerror = () => res([])
+  })
+  return all.map((p) => ({ w: p.width, h: p.height, size: p.blob.size, type: p.blob.type }))
+})
+check('photo lands in IndexedDB, downscaled and re-encoded', 
+  shot?.length >= 1 && shot.every((p) => Math.max(p.w, p.h) <= 1600 && p.type === 'image/jpeg'),
+  JSON.stringify(shot?.[0]))
+
+const lsSize = await page.evaluate(() => (localStorage.getItem('todo.state.v1') ?? '').length)
+check('photos do not bloat localStorage', lsSize < 300_000, `${lsSize} chars`)
+
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForTimeout(700)
+await page.locator('main li button[aria-expanded]').first().click()
+await page.waitForTimeout(800)
+check('photo survives a reload', (await page.getByRole('button', { name: 'View photo' }).count()) === 1)
+await page.locator('main li button[aria-expanded]').first().click()
+await page.waitForTimeout(200)
 
 // Tag rename / merge / delete
 await page.getByRole('button', { name: 'Settings' }).click()

@@ -1,5 +1,6 @@
 import type { Energy, Task, TagDef } from '../types'
 import { DEFAULT_TAGS, LEGACY_TAG_COLORS } from '../types'
+import { exportPhotos, importPhotos } from './photos'
 
 const STATE_KEY = 'todo.state.v1'
 /**
@@ -139,6 +140,27 @@ export function exportJSON(state: AppState): string {
   return JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2)
 }
 
+/** Anything a save surface will plausibly accept. Photos are dropped past this. */
+const MAX_BACKUP_BYTES = 12 * 1_048_576
+
+export type Backup = { json: string; photosIncluded: number; photosDropped: number }
+
+/**
+ * A backup with the photos folded in, so restoring on a new device brings the
+ * images too. Photos are dropped rather than producing a file nothing can save.
+ */
+export async function buildBackup(state: AppState): Promise<Backup> {
+  const ids = [...new Set(state.tasks.flatMap((t) => t.photos ?? []))]
+  if (ids.length === 0) return { json: exportJSON(state), photosIncluded: 0, photosDropped: 0 }
+
+  const photos = await exportPhotos(ids)
+  const withPhotos = JSON.stringify({ ...state, photos, exportedAt: new Date().toISOString() }, null, 2)
+  if (withPhotos.length <= MAX_BACKUP_BYTES) {
+    return { json: withPhotos, photosIncluded: Object.keys(photos).length, photosDropped: 0 }
+  }
+  return { json: exportJSON(state), photosIncluded: 0, photosDropped: ids.length }
+}
+
 export function exportMarkdown(tasks: Task[]): string {
   const open = tasks.filter((t) => t.status === 'open')
   const done = tasks.filter((t) => t.status === 'done')
@@ -153,11 +175,11 @@ export function exportMarkdown(tasks: Task[]): string {
   )
 }
 
-export type ImportResult = { ok: true; state: AppState } | { ok: false; error: string }
+export type ImportResult = { ok: true; state: AppState; photos?: Record<string, string> } | { ok: false; error: string }
 
 export function parseImport(text: string): ImportResult {
   try {
-    const parsed = JSON.parse(text) as Partial<AppState>
+    const parsed = JSON.parse(text) as Partial<AppState> & { photos?: Record<string, string> }
     if (!Array.isArray(parsed.tasks)) return { ok: false, error: 'No tasks array in that file.' }
     const tasks = parsed.tasks.filter((t): t is Task => Boolean(t && typeof t.id === 'string' && typeof t.title === 'string'))
     if (tasks.length === 0) return { ok: false, error: 'That file has no usable tasks.' }
@@ -169,10 +191,17 @@ export function parseImport(text: string): ImportResult {
         tags: Array.isArray(parsed.tags) && parsed.tags.length > 0 ? parsed.tags : DEFAULT_TAGS,
         settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) },
       },
+      photos: (parsed as { photos?: Record<string, string> }).photos,
     }
   } catch {
     return { ok: false, error: "That doesn't look like JSON." }
   }
+}
+
+/** Put a backup's photos back into IndexedDB. Returns how many landed. */
+export async function restorePhotos(photos: Record<string, string> | undefined): Promise<number> {
+  if (!photos || Object.keys(photos).length === 0) return 0
+  return importPhotos(photos)
 }
 
 export type SaveOutcome = 'saved' | 'declined' | 'failed'

@@ -42,6 +42,13 @@ export function TaskMeta({ task, today }: { task: Task; today: string }) {
         </span>
       )}
 
+      {task.photos && task.photos.length > 0 && (
+        <span className="inline-flex items-center gap-0.5 text-faint">
+          <Icon name="camera" className="h-3 w-3" />
+          {task.photos.length}
+        </span>
+      )}
+
       {task.status === 'waiting' && <span className="text-faint">waiting</span>}
       {task.pinned && <Icon name="pin" className="h-3 w-3 text-accent" />}
     </div>

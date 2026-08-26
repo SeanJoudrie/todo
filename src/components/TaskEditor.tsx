@@ -3,6 +3,7 @@ import type { Effort, Priority, Task, TaskContext } from '../types'
 import { CONTEXTS, CONTEXT_LABELS, EFFORTS, PRIORITIES } from '../types'
 import { addDays, formatDuration, todayISO } from '../lib/dates'
 import { useStore } from '../hooks'
+import { PhotoStrip } from './PhotoStrip'
 import { Field, Icon, Pill } from './ui'
 
 const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120, 180, 240, 480]
@@ -48,6 +49,10 @@ export function TaskEditor({ task }: { task: Task }) {
         rows={2}
         className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm leading-relaxed focus:border-accent/50"
       />
+
+      <Field label={`Photos${task.photos?.length ? ` (${task.photos.length})` : ''}`}>
+        <PhotoStrip task={task} />
+      </Field>
 
       {/* Subtasks */}
       <Field label={`Steps${task.subtasks?.length ? ` (${task.subtasks.filter((s) => s.done).length}/${task.subtasks.length})` : ''}`}>

@@ -287,10 +287,12 @@ approximate-looking (`~45m`, never `45m`) so I remember it's a guess I made.
 
 This becomes my external memory, so losing it is unacceptable.
 
-- Every change persisted immediately to `localStorage`. (Built with `localStorage` rather than
-  IndexedDB as originally specced: the whole task list is a few KB of text against a ~5 MB budget,
-  and a synchronous store has no async failure modes to reason about. Revisit only if attachments
-  ever land here.)
+- Tasks persist immediately to `localStorage` — a few KB of text against a ~5 MB budget, and a
+  synchronous store has no async failure modes to reason about.
+- **Photos live in IndexedDB**, keyed by id; a task only holds the ids. This is the "revisit if
+  attachments ever land here" case actually arriving: a single phone photo would consume the entire
+  `localStorage` budget on its own. Images are downscaled to a 1600px long edge and re-encoded as
+  JPEG on the way in, which turns a 3–4 MB photo into roughly 30–200 KB.
 - **Export to JSON** — one button, always available. Also export to plain markdown checklist.
 - **Import from JSON** — restore or merge.
 - Rolling local snapshots: keep the last 10 auto-saves, restorable from settings.
