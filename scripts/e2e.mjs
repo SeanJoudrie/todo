@@ -41,6 +41,22 @@ await page.waitForTimeout(400)
 const reloaded = await titles()
 check('survives a reload', reloaded.some((t) => t.includes('Call the VA')), `${reloaded.length} rows`)
 
+// One dictated run-on in the capture box becomes several tasks.
+await box().fill('I want to clean my room then call my dad then pay my Xfinity bill')
+await page.waitForTimeout(250)
+const heard = await page.locator('ol li.meta').allInnerTexts()
+check('capture box splits a spoken run-on', heard.length === 3, heard.join(' | '))
+await page.getByRole('button', { name: 'Add 3 tasks' }).click()
+await page.waitForTimeout(350)
+const spoken = await titles()
+check(
+  'each spoken item lands as its own task',
+  ['Clean my room', 'Call my dad', 'Pay my Xfinity bill'].every((t) => spoken.some((x) => x.startsWith(t))),
+  `${spoken.length} rows`,
+)
+await page.getByRole('button', { name: 'undo' }).click()
+await page.waitForTimeout(300)
+
 // Brain dump
 await box().fill('clean the garage\nreturn the amazon package\nbook a haircut')
 await page.waitForTimeout(150)
