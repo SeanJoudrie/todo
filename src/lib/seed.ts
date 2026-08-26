@@ -10,7 +10,7 @@ export const newId = () =>
  * new list on next open; anything you've actually used is left alone.
  * See `shouldReseed`.
  */
-export const SEED_VERSION = 2
+export const SEED_VERSION = 3
 
 type SeedSpec = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'priority' | 'seed' | 'subtasks'> &
   Partial<Pick<Task, 'status' | 'priority'>> & { steps?: string[] }
@@ -69,6 +69,9 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Organize military gear',
+      notes:
+        'Do this as part of the move rather than twice. Lay it all out, find what is missing, and that list becomes ' +
+        'the shopping task below.',
       tags: ['army', 'home'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
@@ -85,7 +88,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Update address with the unit after the move',
-      notes: `${SUGGESTED} Easy to forget in a move, annoying when it bites.`,
+      status: 'waiting',
+      notes:
+        `${SUGGESTED} Blocked until you have actually moved and the new address is real. Easy to forget once the ` +
+        'move is over, and annoying when it bites — pay, orders and mail all key off it.',
       tags: ['army', 'admin'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
@@ -107,10 +113,12 @@ function specs(today: string): SeedSpec[] {
       title: 'Look into full-time Guard positions (AGR / Title 32 technician)',
       notes:
         `${SUGGESTED} You joined partly for work. These are real full-time jobs inside the org you are already in, ` +
-        'and they are not posted where you have been looking.',
+        'and they are not posted where you have been looking. Start with your unit admin or readiness NCO — they ' +
+        'know what is open before it is listed anywhere.',
       tags: ['army', 'career'],
       estimateMinutes: 60,
       estimateConfidence: 'guess',
+      priority: 'high',
       effort: 'deep',
       contexts: ['computer'],
     },
@@ -118,6 +126,9 @@ function specs(today: string): SeedSpec[] {
     /* ------------------------------ job search ----------------------------- */
     {
       title: 'Talk to Jackson about a job there',
+      notes:
+        'A warm introduction beats a hundred cold applications, and this is the only warm one on the list. Ask what ' +
+        'they are actually hiring for and whether he will put your name in, not just for general advice.',
       tags: ['career', 'people'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
@@ -128,10 +139,12 @@ function specs(today: string): SeedSpec[] {
       title: 'Apply through veteran-preference channels (federal + state)',
       notes:
         `${SUGGESTED} You have put ~1000 hours into one channel. This is a different channel, not more hours in the ` +
-        'same one — veteran preference on USAJOBS and state listings is a real, underused edge.',
+        'same one — veteran preference on USAJOBS and state listings is a real, underused edge. First step is ' +
+        'finding which preference category you qualify for; that determines everything after it.',
       tags: ['career'],
       estimateMinutes: 90,
       estimateConfidence: 'guess',
+      priority: 'high',
       effort: 'deep',
       contexts: ['computer'],
     },
@@ -167,7 +180,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Get the car repaired',
-      notes: 'Blocked until the diagnosis. Cost unknown until then.',
+      notes:
+        'Blocked: nothing to book until the diagnosis says what is wrong, and the cost is unknowable until then. ' +
+        'Flip this back to open the moment you have the diagnosis.',
+      status: 'waiting',
       tags: ['admin', 'money'],
       estimateMinutes: 180,
       estimateConfidence: 'guess',
@@ -197,9 +213,11 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Report the address change to SNAP and Section 8',
+      status: 'waiting',
       notes:
-        `${SUGGESTED} This one matters. Moving units means both have to be told, usually within a set number of days. ` +
-        'Missing it causes real problems later, and it is exactly the kind of thing that slips during a move.',
+        `${SUGGESTED} Blocked until the move is done, and then it is urgent — both usually have to be told within a ` +
+        'set number of days. This is the single most expensive thing on the list to forget: benefits can be ' +
+        'suspended over a late address change. Look up the exact window before moving day, not after.',
       tags: ['money', 'house', 'admin'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
@@ -216,10 +234,13 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Ask the bank to reverse the overdraft fee',
-      notes: `${SUGGESTED} Banks routinely waive a first overdraft fee if you call and ask. One call.`,
+      notes:
+        `${SUGGESTED} Banks routinely waive a first overdraft fee if you call and ask. One call, and it works far ` +
+        'better soon after it happened than a month later. Ask plainly: it was a one-off, can you reverse it.',
       tags: ['money'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
+      priority: 'high',
       contexts: ['phone', 'business-hours'],
     },
     {
@@ -263,7 +284,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Save up for the LA trip to see your friend',
-      notes: 'Price it out so it becomes a number instead of a someday.',
+      notes:
+        'Price it out — flights, a week of food, whatever you would spend — so it becomes a number you are saving ' +
+        'toward instead of a vague someday. Parked until there is income, but knowing the number costs nothing.',
+      status: 'someday',
       tags: ['money', 'fun', 'people'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
@@ -272,13 +296,16 @@ function specs(today: string): SeedSpec[] {
     /* ------------------------------ the move ------------------------------- */
     {
       title: 'Move downstairs',
+      notes:
+        'The event everything else is waiting on — eight other tasks unblock the day this is done. Two bedrooms into ' +
+        'one, so what you get rid of beforehand decides how bad the day itself is. Put the real date on this.',
       tags: ['house', 'home'],
+      pinned: true,
       estimateMinutes: 600,
       estimateConfidence: 'guess',
       priority: 'critical',
       contexts: ['home'],
       steps: [
-        'Purge before packing — one bedroom less means less fits',
         'Pack the kitchen',
         'Pack the closet',
         'Change address: USPS, bank, unit, SNAP, Section 8',
@@ -300,7 +327,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Get rid of a big chunk of your stuff',
-      notes: 'You said it yourself — too much stuff, and you are losing a bedroom. Do this before packing, not after.',
+      notes:
+        'You said it yourself — too much stuff, and you are losing a bedroom. Do this before packing, not after: ' +
+        'every box you do not pack is one you do not carry twice. Pair it with selling the clothes below.',
+      priority: 'high',
       tags: ['home'],
       estimateMinutes: 240,
       estimateConfidence: 'guess',
@@ -309,7 +339,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Buy a washer and dryer',
-      notes: 'Check the hookups and the space in the new unit before buying anything.',
+      notes:
+        'Blocked: measure the space and check what hookups the new unit actually has before you spend anything. ' +
+        'Buying the wrong size is an expensive mistake to undo.',
+      status: 'waiting',
       tags: ['home', 'money'],
       estimateMinutes: 90,
       estimateConfidence: 'guess',
@@ -317,7 +350,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Set up the designated spots in the new place',
-      notes: 'One spot to work, one to train, one to actually rest. Decide on move-in day, before habits form on their own.',
+      notes:
+        'One spot to work, one to train, one to actually rest. Blocked until you are in there — but do it on move-in ' +
+        'day, before habits form on their own and the good spot becomes where the laundry lives.',
+      status: 'waiting',
       tags: ['home', 'growth'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
@@ -326,7 +362,8 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Get renters insurance for the new unit',
-      notes: `${SUGGESTED} Usually cheap, and often required.`,
+      notes: `${SUGGESTED} Usually cheap, often required, and you need the new address to quote it. Blocked until you move.`,
+      status: 'waiting',
       tags: ['home', 'admin', 'money'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
@@ -334,7 +371,11 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Keep the new place clean — daily reset',
-      notes: 'The habit you said you want. Fifteen minutes a day beats a four-hour blowout on a Saturday.',
+      notes:
+        'Blocked until move-in, and then it starts that same day before any other habit forms. Fifteen minutes a ' +
+        'night beats a four-hour blowout on a Saturday, and a one-bedroom goes from fine to unbearable much faster ' +
+        'than a two did.',
+      status: 'waiting',
       tags: ['home'],
       estimateMinutes: 15,
       estimateConfidence: 'guess',
@@ -358,6 +399,9 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Set up the Instagram account for the content',
+      notes:
+        'Separate from your personal account. That is most of the answer to being perceived by people you knew seven ' +
+        'years ago — a new account has no audience to disappoint.',
       tags: ['content'],
       estimateMinutes: 45,
       estimateConfidence: 'guess',
@@ -365,9 +409,11 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Post the first three videos',
+      status: 'waiting',
       notes:
-        'Being perceived by people you knew seven years ago is the actual blocker, not the filming. Three posts is the ' +
-        'smallest number that tells you anything real.',
+        'Blocked until you have picked a series and made the account — both are above this. After that, the real ' +
+        'blocker is being perceived by people you knew seven years ago, not the filming. Three posts is the ' +
+        'smallest number that tells you anything true about whether this works.',
       tags: ['content'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
@@ -386,6 +432,7 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Set a posting schedule you can actually hold',
+      status: 'someday',
       notes:
         `${SUGGESTED} Your own pattern is post-a-lot then post-nothing. A floor you can hit on a bad week beats a ` +
         'target you abandon.',
@@ -395,6 +442,9 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Work on your app',
+      notes:
+        'Your own project, separate from the community-request one. Worth naming the next concrete thing to build ' +
+        'here, or it stays a mood rather than a task and never gets picked.',
       tags: ['career', 'growth'],
       estimateMinutes: 180,
       estimateConfidence: 'guess',
@@ -403,7 +453,10 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Write your book',
-      notes: 'Long-running. Worth breaking into something smaller once you know the shape of it.',
+      notes:
+        'Parked on purpose. Nothing here has traction yet and it competes with the content, which pays sooner and ' +
+        'builds an audience the book would need anyway. Pull it back out when you know what it is actually about.',
+      status: 'someday',
       tags: ['growth'],
       estimateMinutes: 120,
       estimateConfidence: 'guess',
@@ -453,6 +506,7 @@ function specs(today: string): SeedSpec[] {
     /* -------------------------------- people ------------------------------- */
     {
       title: "Talk to Sarah's dad",
+      notes: 'Add what it is about while you still remember, or this becomes a line you cannot decode in three weeks.',
       tags: ['people'],
       estimateMinutes: 30,
       estimateConfidence: 'guess',
@@ -479,6 +533,7 @@ function specs(today: string): SeedSpec[] {
     },
     {
       title: 'Build the new wardrobe',
+      status: 'someday',
       notes: 'The uniform you described: ~10 college shirts, ~10 suit jackets, ~10 sweaters. Same thing, different variety.',
       tags: ['admin', 'money'],
       estimateMinutes: 120,

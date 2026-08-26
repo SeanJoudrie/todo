@@ -193,6 +193,20 @@ check(
   `${afterOrganize.length} rows`,
 )
 
+// Regression: a task marked "waiting" used to vanish from every single view.
+await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.waitForTimeout(300)
+const blockedRow = (await titles()).find((t) => /waiting/.test(t))
+check('blocked tasks are still listed', Boolean(blockedRow), blockedRow?.split('\n')[0])
+
+await page.getByRole('button', { name: 'Someday', exact: true }).click()
+await page.waitForTimeout(300)
+const somedayCount = await page.locator('main li > div > button[aria-expanded]').count()
+check('someday holds only what was parked there', somedayCount > 0 && somedayCount < 12, `${somedayCount} rows`)
+await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.waitForTimeout(300)
+check('today calls out what is blocked', /blocked/i.test(await page.locator('main').innerText()))
+
 // Photos: attach, shrink, persist, and never bloat localStorage.
 await page.locator('main li button[aria-expanded]').first().click()
 await page.waitForTimeout(300)

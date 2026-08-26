@@ -24,8 +24,17 @@ const VIEWS: { id: View; label: string }[] = [
   { id: 'done', label: 'Done' },
 ]
 
-const isActive = (t: Task, now: string) =>
-  t.status === 'open' && !(t.snoozedUntil && t.snoozedUntil > now)
+const notSnoozed = (t: Task, now: string) => !(t.snoozedUntil && t.snoozedUntil > now)
+
+/** Actionable right now — what Today and the planner work from. */
+const isActive = (t: Task, now: string) => t.status === 'open' && notSnoozed(t, now)
+
+/**
+ * Everything still outstanding, including work that is blocked on something
+ * else. `waiting` is not `done` — it must never fall out of every view.
+ */
+const isOutstanding = (t: Task, now: string) =>
+  (t.status === 'open' || t.status === 'waiting') && notSnoozed(t, now)
 
 function Shell() {
   const store = useStore()
@@ -43,6 +52,7 @@ function Shell() {
   const nowIso = new Date().toISOString()
 
   const active = useMemo(() => tasks.filter((t) => isActive(t, nowIso)), [tasks, nowIso])
+  const outstanding = useMemo(() => tasks.filter((t) => isOutstanding(t, nowIso)), [tasks, nowIso])
 
   const { dueNow, nextUp } = useMemo(() => {
     const due = active.filter((t) => {
@@ -59,31 +69,29 @@ function Shell() {
   }, [active, today])
 
   const visible = useMemo(() => {
-    const pool = active.filter((t) => matchesSearch(t, query))
+    const pool = outstanding.filter((t) => matchesSearch(t, query))
     const tagged = tagFilter.length > 0 ? pool.filter((t) => t.tags.some((x) => tagFilter.includes(x))) : pool
     return sortTasks(tagged, sort)
-  }, [active, query, tagFilter, sort])
+  }, [outstanding, query, tagFilter, sort])
 
   const somedayTasks = useMemo(
-    () =>
-      sortTasks(
-        tasks.filter(
-          (t) =>
-            t.status === 'someday' ||
-            (isActive(t, nowIso) && !t.dueDate && !t.targetDate && !t.pinned),
-        ),
-        'created',
-      ),
+    () => sortTasks(tasks.filter((t) => t.status === 'someday'), 'created'),
+    [tasks],
+  )
+
+  /** Blocked on something else. Surfaced on its own so it can't be forgotten. */
+  const waitingTasks = useMemo(
+    () => sortTasks(tasks.filter((t) => t.status === 'waiting' && notSnoozed(t, nowIso)), 'smart'),
     [tasks, nowIso],
   )
 
   const grouped = useMemo(() => {
     const byTag = tags
-      .map((tag) => ({ tag, list: sortTasks(active.filter((t) => t.tags.includes(tag.id)), 'smart') }))
+      .map((tag) => ({ tag, list: sortTasks(outstanding.filter((t) => t.tags.includes(tag.id)), 'smart') }))
       .filter((g) => g.list.length > 0)
-    const untagged = sortTasks(active.filter((t) => t.tags.length === 0), 'smart')
+    const untagged = sortTasks(outstanding.filter((t) => t.tags.length === 0), 'smart')
     return { byTag, untagged }
-  }, [active, tags])
+  }, [outstanding, tags])
 
   const usedTags = useMemo(() => {
     const present = new Set(active.flatMap((t) => t.tags))
@@ -172,7 +180,14 @@ function Shell() {
                 </>
               )}
 
-              {dueNow.length === 0 && nextUp.length === 0 && (
+              {waitingTasks.length > 0 && (
+                <>
+                  <SectionLabel>Blocked — waiting on something else</SectionLabel>
+                  <TaskList tasks={waitingTasks} today={today} />
+                </>
+              )}
+
+              {dueNow.length === 0 && nextUp.length === 0 && waitingTasks.length === 0 && (
                 <Empty title="All clear." hint="Talk something into the box up top." />
               )}
             </div>
@@ -251,7 +266,7 @@ function Shell() {
 
         {view === 'someday' && (
           <>
-            <SectionLabel>Eventually — no date on any of these</SectionLabel>
+            <SectionLabel>Eventually — parked on purpose</SectionLabel>
             {somedayTasks.length > 0 ? (
               <TaskList tasks={somedayTasks} today={today} />
             ) : (

@@ -36,8 +36,36 @@ describe('the shipped list', () => {
     expect(followUp?.pinned).toBe(true)
   })
 
-  it('parks the income-dependent ones in someday', () => {
-    expect(untouched().filter((t) => t.status === 'someday').length).toBe(2)
+  it('parks things that cannot start yet, without hiding them', () => {
+    const tasks = untouched()
+    const someday = tasks.filter((t) => t.status === 'someday')
+    const waiting = tasks.filter((t) => t.status === 'waiting')
+    const open = tasks.filter((t) => t.status === 'open')
+
+    // Most of the list should be genuinely actionable, not parked.
+    expect(open.length).toBeGreaterThan(waiting.length + someday.length)
+    expect(someday.length).toBeGreaterThanOrEqual(4)
+    expect(waiting.length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('says why each blocked task is blocked', () => {
+    for (const t of untouched().filter((x) => x.status === 'waiting')) {
+      expect(t.notes, t.title).toBeTruthy()
+      expect(t.notes, t.title).toMatch(/blocked|until|before|after|need/i)
+    }
+  })
+
+  it('explains every task it ships', () => {
+    for (const t of untouched()) {
+      expect(t.notes?.trim(), t.title).toBeTruthy()
+    }
+  })
+
+  it('does not duplicate the purge as both a task and a step of the move', () => {
+    const tasks = untouched()
+    const move = tasks.find((t) => t.title === 'Move downstairs')
+    expect(move?.subtasks?.some((s) => /purge/i.test(s.title))).toBe(false)
+    expect(tasks.some((t) => /get rid of a big chunk/i.test(t.title))).toBe(true)
   })
 })
 
