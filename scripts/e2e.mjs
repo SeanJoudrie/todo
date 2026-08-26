@@ -193,6 +193,60 @@ check(
   `${afterOrganize.length} rows`,
 )
 
+// Sorting must work on Today, not only on All.
+await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.waitForTimeout(300)
+const firstUnder = async (label) => {
+  await page.getByRole('button', { name: label, exact: true }).click()
+  await page.waitForTimeout(350)
+  return (await titles())[0].split('\n')[0].trim()
+}
+const quickestFirst = await firstUnder('quickest')
+const longestFirst = await firstUnder('longest')
+check('sorting by time works on Today', quickestFirst !== longestFirst, `${quickestFirst} vs ${longestFirst}`)
+
+// Read the real durations off a flat list and prove the ordering, rather than
+// just that something moved.
+const minutesInOrder = async (label) => {
+  await page.getByRole('button', { name: 'All', exact: true }).click()
+  await page.waitForTimeout(250)
+  await page.getByRole('button', { name: label, exact: true }).click()
+  await page.waitForTimeout(400)
+  return (await titles())
+    .map((row) => /~(\d+)h\s*(\d+)?m?|~(\d+)m/.exec(row))
+    .filter(Boolean)
+    .map((m) => (m[1] ? Number(m[1]) * 60 + Number(m[2] ?? 0) : Number(m[3])))
+}
+const asc = await minutesInOrder('quickest')
+const desc = await minutesInOrder('longest')
+check(
+  'quickest really is ascending by duration',
+  asc.length > 5 && asc.every((v, i) => i === 0 || asc[i - 1] <= v),
+  `${asc.slice(0, 5).join(',')} …`,
+)
+check(
+  'longest really is descending by duration',
+  desc.length > 5 && desc.every((v, i) => i === 0 || desc[i - 1] >= v),
+  `${desc.slice(0, 5).join(',')} …`,
+)
+
+// Importance must lead with the pinned/critical work.
+await page.getByRole('button', { name: 'importance', exact: true }).click()
+await page.waitForTimeout(400)
+const byImportance = (await titles())[0]
+check('importance leads with the pinned work', /employer|Move downstairs/.test(byImportance), byImportance.split('\n')[0])
+await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.waitForTimeout(250)
+
+// The choice has to survive a reload, or it is not a setting.
+await page.getByRole('button', { name: 'longest', exact: true }).click()
+await page.waitForTimeout(350)
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForTimeout(800)
+const stillLongest = await page.getByRole('button', { name: 'longest', exact: true }).getAttribute('class')
+check('the chosen sort survives a reload', /accent/.test(stillLongest ?? ''), stillLongest?.includes('accent') ? 'longest still selected' : 'lost it')
+await firstUnder('smart')
+
 // Regression: a task marked "waiting" used to vanish from every single view.
 await page.getByRole('button', { name: 'All', exact: true }).click()
 await page.waitForTimeout(300)

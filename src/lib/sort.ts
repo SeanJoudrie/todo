@@ -2,14 +2,22 @@ import type { Task } from '../types'
 import { effectiveDate } from './dates'
 import { baseScore, remainingWork } from './planner'
 
-export type SortKey = 'smart' | 'due' | 'duration' | 'priority' | 'created'
+export type SortKey = 'smart' | 'due' | 'importance' | 'quickest' | 'longest' | 'created'
 
 export const SORT_LABELS: Record<SortKey, string> = {
   smart: 'smart',
   due: 'due date',
-  duration: 'shortest',
-  priority: 'priority',
+  importance: 'importance',
+  quickest: 'quickest',
+  longest: 'longest',
   created: 'newest',
+}
+
+export const SORT_KEYS = Object.keys(SORT_LABELS) as SortKey[]
+
+/** A stored preference from an older build must never wedge the list. */
+export function asSortKey(value: unknown): SortKey {
+  return SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : 'smart'
 }
 
 const PRIORITY_ORDER = { critical: 0, high: 1, normal: 2, low: 3 } as const
@@ -30,10 +38,18 @@ export function sortTasks(tasks: Task[], key: SortKey, now = new Date()): Task[]
         if (!db) return -1
         return da.localeCompare(db)
       })
-    case 'duration':
+    case 'quickest':
       return copy.sort((a, b) => remainingWork(a) - remainingWork(b))
-    case 'priority':
-      return copy.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+    case 'longest':
+      return copy.sort((a, b) => remainingWork(b) - remainingWork(a))
+    case 'importance':
+      // Pinned first, then priority, then the smart score to break ties sensibly.
+      return copy.sort((a, b) => {
+        if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1
+        const byPriority = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+        if (byPriority !== 0) return byPriority
+        return baseScore(b, req).score - baseScore(a, req).score
+      })
     case 'created':
       return copy.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }

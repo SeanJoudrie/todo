@@ -19,6 +19,8 @@ export type Settings = {
   seedInstalled: boolean
   /** Which shipped starting list this install has. See `shouldReseed`. */
   seedVersion: number
+  /** Last chosen list ordering, so it survives a reload. */
+  lastSort: string
 }
 
 export type AppState = {
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lastFocusTags: [],
   seedInstalled: false,
   seedVersion: 0,
+  lastSort: 'smart',
 }
 
 export function emptyState(): AppState {

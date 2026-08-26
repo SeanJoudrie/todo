@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Task } from './types'
 import { effectiveDate, todayISO } from './lib/dates'
-import { matchesSearch, SORT_LABELS, sortTasks, type SortKey } from './lib/sort'
+import { asSortKey, matchesSearch, SORT_KEYS, SORT_LABELS, sortTasks, type SortKey } from './lib/sort'
 import { StoreProvider } from './store'
 import { useStore } from './hooks'
 import { CaptureBar } from './components/CaptureBar'
@@ -44,7 +44,7 @@ function Shell() {
   const [organize, setOrganize] = useState(false)
   const [settings, setSettings] = useState(false)
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState<SortKey>('smart')
+  const [sort, setSort] = useState<SortKey>(() => asSortKey(store.settings.lastSort))
   const [tagFilter, setTagFilter] = useState<string[]>([])
   const captureRef = useRef<HTMLTextAreaElement>(null)
 
@@ -62,11 +62,11 @@ function Shell() {
     })
     const dueIds = new Set(due.map((t) => t.id))
     return {
-      dueNow: sortTasks(due, 'smart'),
+      dueNow: sortTasks(due, sort),
       // Everything else, best-first. An empty Today screen with a full list is a lie.
-      nextUp: sortTasks(active.filter((t) => !dueIds.has(t.id)), 'smart'),
+      nextUp: sortTasks(active.filter((t) => !dueIds.has(t.id)), sort),
     }
-  }, [active, today])
+  }, [active, today, sort])
 
   const visible = useMemo(() => {
     const pool = outstanding.filter((t) => matchesSearch(t, query))
@@ -75,23 +75,23 @@ function Shell() {
   }, [outstanding, query, tagFilter, sort])
 
   const somedayTasks = useMemo(
-    () => sortTasks(tasks.filter((t) => t.status === 'someday'), 'created'),
-    [tasks],
+    () => sortTasks(tasks.filter((t) => t.status === 'someday'), sort),
+    [tasks, sort],
   )
 
   /** Blocked on something else. Surfaced on its own so it can't be forgotten. */
   const waitingTasks = useMemo(
-    () => sortTasks(tasks.filter((t) => t.status === 'waiting' && notSnoozed(t, nowIso)), 'smart'),
-    [tasks, nowIso],
+    () => sortTasks(tasks.filter((t) => t.status === 'waiting' && notSnoozed(t, nowIso)), sort),
+    [tasks, nowIso, sort],
   )
 
   const grouped = useMemo(() => {
     const byTag = tags
-      .map((tag) => ({ tag, list: sortTasks(outstanding.filter((t) => t.tags.includes(tag.id)), 'smart') }))
+      .map((tag) => ({ tag, list: sortTasks(outstanding.filter((t) => t.tags.includes(tag.id)), sort) }))
       .filter((g) => g.list.length > 0)
-    const untagged = sortTasks(outstanding.filter((t) => t.tags.length === 0), 'smart')
+    const untagged = sortTasks(outstanding.filter((t) => t.tags.length === 0), sort)
     return { byTag, untagged }
-  }, [outstanding, tags])
+  }, [outstanding, tags, sort])
 
   const usedTags = useMemo(() => {
     const present = new Set(active.flatMap((t) => t.tags))
@@ -140,6 +140,16 @@ function Shell() {
       </header>
 
       <CaptureBar inputRef={captureRef} />
+
+      {view !== 'done' && (
+        <SortBar
+          sort={sort}
+          onChange={(key) => {
+            setSort(key)
+            store.setSettings({ lastSort: key })
+          }}
+        />
+      )}
 
       <main className="flex-1 pb-28">
         {view === 'today' && (
@@ -206,14 +216,6 @@ function Shell() {
                 aria-label="Search tasks"
                 className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:border-accent/50"
               />
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="label text-faint">sort</span>
-                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
-                  <Pill key={key} active={sort === key} onClick={() => setSort(key)}>
-                    {SORT_LABELS[key]}
-                  </Pill>
-                ))}
-              </div>
               {usedTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="label text-faint">tag</span>
@@ -295,6 +297,19 @@ function Shell() {
       <PlannerSheet open={planner} onClose={() => setPlanner(false)} />
       <SettingsSheet open={settings} onClose={() => setSettings(false)} />
       <Toasts />
+    </div>
+  )
+}
+
+function SortBar({ sort, onChange }: { sort: SortKey; onChange: (key: SortKey) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 overflow-x-auto border-b border-line px-3 py-2">
+      <span className="label shrink-0 text-faint">sort</span>
+      {SORT_KEYS.map((key) => (
+        <Pill key={key} active={sort === key} onClick={() => onChange(key)}>
+          {SORT_LABELS[key]}
+        </Pill>
+      ))}
     </div>
   )
 }
