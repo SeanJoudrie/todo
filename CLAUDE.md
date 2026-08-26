@@ -3,25 +3,32 @@
 A private, single-user task app. One user, one device, no accounts. The spec it
 was built from is `PROMPT.md`; `README.md` is the user-facing description.
 
-## Shipping — do all of this, every time
+## NEVER send a Claude artifact
 
-A change is not delivered until the **live app** has it. Pushing to git alone
-does not count: the owner uses the published page, not the repo.
+The owner cannot open artifacts on their phone. They have asked, in the
+strongest terms, never to be sent one again. **The app lives on GitHub Pages.**
+When they say "link me", they mean a github.com URL — nothing else.
+
+- **The app:** https://seanjoudrie.github.io/todo/
+- **The repo:** https://github.com/SeanJoudrie/todo
+
+## Shipping — do all of this, every time
 
 ```sh
 npm test                       # unit tests
 npm run build                  # typecheck + production build
 npm run preview &              # then, against the built app:
 npm run e2e                    # browser checks of the real flows
-npm run build:artifact         # single self-contained page
-# publish dist-artifact/app.html to the SAME artifact URL (never a new one)
-git push origin main
+git push origin main           # this is the deploy
 ```
 
-Then give the owner the link. Both links, when either changed:
+Pushing to `main` **is** the deploy: `.github/workflows/deploy.yml` runs the
+tests, builds, and publishes to Pages. Confirm the run went green before telling
+the owner it shipped — a red run means they are still on the old build. Then
+give them https://seanjoudrie.github.io/todo/
 
-- Live app: https://claude.ai/code/artifact/be25dde2-5ce1-4ef3-911a-d46ad68f9ba2
-- Source: https://github.com/SeanJoudrie/todo
+`npm run build:artifact` still exists for a single self-contained `.html`, but
+do not publish it as an artifact. It is only useful for handing over a file.
 
 `CHROME_PATH` may need setting for `npm run e2e` if Playwright can't find a
 browser.

@@ -1,6 +1,6 @@
 # todo
 
-**Open it:** https://claude.ai/code/artifact/be25dde2-5ce1-4ef3-911a-d46ad68f9ba2
+**Open it:** https://seanjoudrie.github.io/todo/
 **Source:** https://github.com/SeanJoudrie/todo/tree/claude/personal-todo-app-prompt-o6gw5i
 
 Add the link to your phone's home screen and it opens like an app.
@@ -65,14 +65,12 @@ npm run e2e          # browser smoke test of the real flows
 
 ## Where it's running
 
-| Link | What you get |
-|---|---|
-| [The live app](https://claude.ai/code/artifact/be25dde2-5ce1-4ef3-911a-d46ad68f9ba2) | Works now, nothing to set up. Everything except the optional Claude-powered organizing, which is blocked from calling out. |
-| GitHub Pages | The full thing, including the API key path, installable as a proper offline PWA. Turn it on once: repo **Settings → Pages → Source: GitHub Actions**. The workflow in `.github/workflows/deploy.yml` builds and publishes on every push. |
+Live at **https://seanjoudrie.github.io/todo/** — every push to `main` runs the tests, builds, and
+republishes it (`.github/workflows/deploy.yml`). Add it to your phone's home screen and it installs
+as a PWA that works offline.
 
-**Your tasks live per link.** Each URL keeps its own copy in that browser's storage — adding a task
-in one does not put it in the other. Pick one as home. To move between them: Settings → **copy
-backup** in the old one, **paste a backup** in the new one.
+**Your tasks live per URL**, in that browser's own storage. To move a list somewhere else:
+Settings → **copy backup** in the old one, **paste a backup** in the new one.
 
 ## Deploying anywhere else
 
