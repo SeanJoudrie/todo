@@ -30,11 +30,13 @@ const notSnoozed = (t: Task, now: string) => !(t.snoozedUntil && t.snoozedUntil 
 const isActive = (t: Task, now: string) => t.status === 'open' && notSnoozed(t, now)
 
 /**
- * Everything still outstanding, including work that is blocked on something
- * else. `waiting` is not `done` — it must never fall out of every view.
+ * Everything still outstanding — including work that is blocked, and work
+ * snoozed out of today. Neither is `done`, so neither may fall out of every
+ * view. Snoozing hides a task from Today; it must never hide it from the list.
  */
-const isOutstanding = (t: Task, now: string) =>
-  (t.status === 'open' || t.status === 'waiting') && notSnoozed(t, now)
+const isOutstanding = (t: Task) => t.status === 'open' || t.status === 'waiting'
+
+const isSnoozed = (t: Task, now: string) => isOutstanding(t) && !notSnoozed(t, now)
 
 function Shell() {
   const store = useStore()
@@ -52,7 +54,11 @@ function Shell() {
   const nowIso = new Date().toISOString()
 
   const active = useMemo(() => tasks.filter((t) => isActive(t, nowIso)), [tasks, nowIso])
-  const outstanding = useMemo(() => tasks.filter((t) => isOutstanding(t, nowIso)), [tasks, nowIso])
+  const outstanding = useMemo(() => tasks.filter(isOutstanding), [tasks])
+  const snoozedTasks = useMemo(
+    () => sortTasks(tasks.filter((t) => isSnoozed(t, nowIso)), sort),
+    [tasks, nowIso, sort],
+  )
 
   const { dueNow, nextUp } = useMemo(() => {
     const due = active.filter((t) => {
@@ -197,7 +203,26 @@ function Shell() {
                 </>
               )}
 
-              {dueNow.length === 0 && nextUp.length === 0 && waitingTasks.length === 0 && (
+              {snoozedTasks.length > 0 && (
+                <>
+                  <div className="label flex items-center gap-2 border-y border-line/60 bg-surface-2/70 px-4 py-2 text-faint">
+                    <span>Snoozed ({snoozedTasks.length}) — hidden from today, not gone</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        snoozedTasks.forEach((t) => store.updateTask(t.id, { snoozedUntil: undefined }))
+                        store.pushToast(`Woke ${snoozedTasks.length} tasks back up`)
+                      }}
+                      className="ml-auto normal-case text-accent hover:underline"
+                    >
+                      wake all
+                    </button>
+                  </div>
+                  <TaskList tasks={snoozedTasks} today={today} />
+                </>
+              )}
+
+              {dueNow.length === 0 && nextUp.length === 0 && waitingTasks.length === 0 && snoozedTasks.length === 0 && (
                 <Empty title="All clear." hint="Talk something into the box up top." />
               )}
             </div>

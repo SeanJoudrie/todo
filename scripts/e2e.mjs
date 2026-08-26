@@ -247,6 +247,41 @@ const stillLongest = await page.getByRole('button', { name: 'longest', exact: tr
 check('the chosen sort survives a reload', /accent/.test(stillLongest ?? ''), stillLongest?.includes('accent') ? 'longest still selected' : 'lost it')
 await firstUnder('smart')
 
+// Regression: snoozing used to remove a task from every view at once, so
+// tapping "not today" a few times looked exactly like the list being cut.
+await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.waitForTimeout(300)
+const beforeSnooze = (await titles()).length
+await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.waitForTimeout(250)
+await page.getByRole('button', { name: 'What now?' }).click()
+await page.waitForTimeout(500)
+let snoozedCount = 0
+for (let i = 0; i < 4; i++) {
+  const b = page.getByRole('button', { name: 'not today' }).first()
+  if ((await b.count()) === 0) break
+  await b.click()
+  await page.waitForTimeout(280)
+  snoozedCount++
+}
+await page.keyboard.press('Escape')
+await page.waitForTimeout(400)
+await page.getByRole('button', { name: 'All', exact: true }).click()
+await page.waitForTimeout(350)
+const afterSnooze = (await titles()).length
+check(
+  'snoozing never removes a task from the list',
+  snoozedCount > 0 && afterSnooze === beforeSnooze,
+  `${beforeSnooze} -> ${afterSnooze} after ${snoozedCount} snoozes`,
+)
+await page.getByRole('button', { name: 'Today', exact: true }).click()
+await page.waitForTimeout(350)
+const todayText = await page.locator('main').innerText()
+check('today shows what was snoozed', /snoozed \(/i.test(todayText))
+await page.getByRole('button', { name: 'wake all' }).click()
+await page.waitForTimeout(500)
+check('wake all brings them back', !/snoozed \(/i.test(await page.locator('main').innerText()))
+
 // Regression: a task marked "waiting" used to vanish from every single view.
 await page.getByRole('button', { name: 'All', exact: true }).click()
 await page.waitForTimeout(300)

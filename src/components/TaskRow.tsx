@@ -50,6 +50,10 @@ export function TaskMeta({ task, today }: { task: Task; today: string }) {
       )}
 
       {task.status === 'waiting' && <span className="text-faint">waiting</span>}
+
+      {task.snoozedUntil && task.snoozedUntil > new Date().toISOString() && (
+        <span className="text-accent">snoozed till {formatDate(task.snoozedUntil.slice(0, 10), today)}</span>
+      )}
       {task.pinned && <Icon name="pin" className="h-3 w-3 text-accent" />}
     </div>
   )

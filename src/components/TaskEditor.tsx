@@ -213,10 +213,21 @@ export function TaskEditor({ task }: { task: Task }) {
         <Pill active={task.pinned} onClick={() => store.togglePin(task.id)}>
           <Icon name="pin" className="h-3 w-3" /> {task.pinned ? 'pinned' : 'pin'}
         </Pill>
+        {task.snoozedUntil && task.snoozedUntil > new Date().toISOString() && (
+          <Pill
+            active
+            onClick={() => {
+              updateTask(task.id, { snoozedUntil: undefined })
+              pushToast('Back in the list')
+            }}
+          >
+            <Icon name="undo" className="h-3 w-3" /> un-snooze
+          </Pill>
+        )}
         <Pill
           onClick={() => {
             store.snooze(task.id, new Date(`${addDays(todayISO(), 1)}T04:00`))
-            pushToast('Snoozed until tomorrow')
+            pushToast('Snoozed until tomorrow — still in All')
           }}
         >
           <Icon name="snooze" className="h-3 w-3" /> tomorrow
