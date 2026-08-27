@@ -245,6 +245,15 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
           </Field>
         )}
 
+        <Field label="Version">
+          <p className="meta text-muted">
+            Build {__BUILD__}
+          </p>
+          <p className="text-[11px] leading-relaxed text-faint">
+            If this looks old, the app is being served from cache. Close the tab completely and open the link again.
+          </p>
+        </Field>
+
         <Field label="Danger">
           {confirmReset ? (
             <div className="flex flex-wrap items-center gap-2">

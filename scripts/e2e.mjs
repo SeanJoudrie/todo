@@ -434,6 +434,19 @@ await page.waitForTimeout(300)
 const tagNames = await dialog.locator('li button[style*="color"]').allInnerTexts()
 check('renaming onto an existing tag merges them', !tagNames.includes('growth') && tagNames.includes('fun'), tagNames.join(','))
 
+// Which build is actually running. This is how the owner can tell me whether
+// he is looking at the fix or at a cached copy of the app from two deploys ago,
+// so it must not be able to break quietly.
+const stamp = await page.evaluate(() => {
+  const label = [...document.querySelectorAll('.label')].find((el) => el.textContent.trim() === 'Version')
+  return label ? label.parentElement.innerText.replace(/\s+/g, ' ').trim() : ''
+})
+check(
+  'settings names the running build',
+  /Build \d{4}-\d{2}-\d{2} \d{2}:\d{2} · [0-9a-f]{7,}/.test(stamp),
+  stamp.slice(0, 60),
+)
+
 // Export
 const dl = page.waitForEvent('download')
 await page.getByRole('button', { name: 'export JSON' }).click()

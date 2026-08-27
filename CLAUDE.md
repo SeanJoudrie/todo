@@ -18,7 +18,7 @@ When they say "link me", they mean a github.com URL — nothing else.
 npm test                       # unit tests
 npm run build                  # typecheck + production build
 npm run preview &              # then, against the built app:
-npm run e2e                    # browser checks of the real flows
+npm run e2e                    # browser checks, then the service-worker check
 git push origin main           # this is the deploy
 ```
 
@@ -32,6 +32,32 @@ do not publish it as an artifact. It is only useful for handing over a file.
 
 `CHROME_PATH` may need setting for `npm run e2e` if Playwright can't find a
 browser.
+
+## The service worker, and "I don't see it"
+
+If the owner says a change isn't there and describes something from an *earlier*
+build as present, he is being served a stale copy — believe him and check the
+worker before re-reading the feature code.
+
+`public/sw.js` was stale-while-revalidate for everything, so every fresh open
+served the previous build and a deploy only landed on the visit after. He spent
+days looking at an app two deploys behind while being told things had shipped.
+Now: the document is **network-first**, and only content-hashed `/assets/` files
+are cache-first, because their names change whenever their contents do.
+
+- **Never test this with `page.reload()`.** A reload revalidates. He taps a
+  link, which is a fresh navigation. The check that missed this bug used a
+  reload and passed the whole time. `scripts/sw-check.mjs` opens a new page
+  every time, and runs `src/lib/sw-register.ts` as its real source rather than
+  a copy that could drift.
+- Replacing the worker isn't enough on its own — the visit that installs the
+  replacement is still served by the old one. `registerServiceWorker` reloads
+  once on `controllerchange`, guarded against a loop, so the new build arrives
+  without him needing to know to open it twice. It takes about three seconds.
+- Settings shows `Build <date> · <sha>`, stamped in by `vite.config.ts`. Ask him
+  for it rather than guessing which build he is on.
+- `npm run e2e:sw` is also in CI, because a broken worker means he silently
+  stops receiving everything else.
 
 ## Changing the shipped task list
 

@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview --port 4173 --strictPort",
     "test": "vitest run",
-    "e2e": "node scripts/e2e.mjs",
+    "e2e": "node scripts/e2e.mjs && node scripts/sw-check.mjs",
+    "e2e:sw": "node scripts/sw-check.mjs",
     "build:single": "tsc -b && vite build --mode single",
     "build:artifact": "npm run build:single && node scripts/make-artifact.mjs"
   },
