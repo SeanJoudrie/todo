@@ -1,6 +1,6 @@
 # Job scanner — working spec
 
-Status: draft for discussion. Not built yet.
+Status: decisions made, ready to build once two inputs land. Not built yet.
 
 ## The one idea
 
@@ -65,6 +65,24 @@ same invisible-filter problem this app exists to avoid.
 
 ---
 
+## Your profile
+
+Everything on the next two screens is only as good as this, so it gets built
+properly rather than scraped out of a PDF.
+
+**Decided: resume first, then I fill the gaps.** You hand over the resume, I read
+it, and then I ask about what a resume structurally cannot hold — clearance level
+and status, what the Guard service and OCS actually involved, the fourteen apps,
+the certifications, and the honest floor on pay and commute. Resumes compress out
+most of what makes someone hireable; the gaps are where the scoring gets its
+teeth.
+
+The profile is a **plain editable document in the repo**, not a hidden blob. You
+can read it, change it, and see exactly what every score and cover letter was
+working from. If a score looks wrong, the reason is visible in there.
+
+---
+
 ## Screen 2 — Score
 
 Select any number of jobs (10 is the natural habit) and hit **Next**.
@@ -104,14 +122,31 @@ that job's actual description plus your profile.
 ## Wildcard
 
 A separate section that **ignores your filter stack on purpose.** A handful of
-jobs that wouldn't survive the funnel and aren't what you'd search for — chosen
-against your personality rather than your resume. Pay may be worse. It exists
-because a net you tighten every day eventually only catches what you already
-expected, and that's its own kind of trap.
+jobs that wouldn't survive the funnel and aren't what you'd search for. Pay may
+be worse. It exists because a net you tighten every day eventually only catches
+what you already expected, and that's its own kind of trap.
+
+All four modes are on, mixed, and **each card is tagged with why it's there** so
+a wildcard never looks like a mistake in the results:
+
+- `easy money` — undemanding work that pays. No career story, no growth.
+- `interesting` — work you'd actually find engaging, even at worse pay.
+- `stretch` — above your level on paper. Postings are wish lists; they hire the
+  person who applied.
+- `weird` — odd titles and industries you'd never think to type, so they could
+  never survive a filter stack.
+
+Roughly even split, refreshed each scan, with a thumbs-down that feeds back into
+which modes get more room.
 
 ---
 
 ## Sources — what coverage honestly looks like
+
+**Decided: both halves.** A standing scan keeps a fresh pool waiting without you
+doing anything, and the paste box covers everything the scan structurally can't
+reach. Neither alone is enough — the scan can only see companies we name, and
+the paste box only works when you're sitting there pasting.
 
 | Source | How | What it gets you |
 |---|---|---|
@@ -128,9 +163,14 @@ losing that fight lands on your account, which you can't afford right now. The
 alert-email path gets their listings into the pool without betting your profile
 on it.
 
+**Decided: distance anchors to your current address**, 25-mile default radius.
+
+The anchor is a setting, not a constant — when the move happens you change one
+field and every saved net re-anchors itself. No rebuilding your rules.
+
 Distance uses an offline ZIP-code centroid table rather than a geocoding API:
 free, no rate limit, no key, and accurate to a couple of miles, which is all a
-25-mile radius needs.
+25-mile radius needs. Your address never leaves the device.
 
 ---
 
@@ -146,8 +186,14 @@ Same shape as the todo app, because it works and you already trust it:
 - Everything is inspectable in the repo — no service, no account, no algorithm
   you can't read
 
-## Open questions
+## Still needed before this can be built
 
-Tracked separately; see the conversation. The big ones: which sources fill the
-pool first, what the commute anchor is, how your profile gets built, and what
-Wildcard should optimise for.
+1. **Your resume** — blocks the profile, which blocks scoring and cover letters.
+   Any format.
+2. **Your current ZIP code** — blocks distance, which blocks the radius rules.
+   ZIP is enough; a full address isn't needed and shouldn't be in git.
+3. **Whether you hold a clearance, and at what level** — not a blocker, but it
+   changes which companies go on the scan list more than any other single fact.
+
+The scanner, the pool, the filter stack and the wildcard section don't depend on
+any of these and can be built first.
