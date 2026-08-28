@@ -57,7 +57,34 @@ A vertical list of rules. Each shows how many jobs survived it:
 
 Rule types: contains / does not contain (title, body, or both) · distance ·
 pay floor · posted within · education required · years of experience required ·
-employment type · remote / hybrid / onsite · source · company.
+employment type · remote / hybrid / onsite · source · company · **role family** ·
+**clearance requirement**.
+
+### Role family, not keywords
+
+A `− sales` keyword rule catches almost nothing, because the jobs are titled
+Account Executive, Business Development Representative, Territory Manager,
+Client Partner, Inside Sales Rep, Account Manager, Revenue Associate, Sales
+Engineer, Territory Sales Consultant, Enterprise AE.
+
+So exclusions ship as **families** — one toggle, many titles, editable list you
+can see and add to. The sales family is pre-built and pre-loaded, because it is
+the specific hole this app was dug out of.
+
+The families are visible and yours. Nothing is excluded by a rule you can't read.
+
+### Clearance requirement
+
+Three states, not a keyword:
+
+- `requires an active clearance` — you don't have one yet, so this is normally off
+- `clearable / will sponsor` — **on**. "Must be able to obtain a Secret
+  clearance" is a requirement you meet: US citizen, Guard, OCS, no clearance yet
+  but eligible for Secret / TS.
+- `no clearance mentioned` — on
+
+Worth its own rule type rather than a keyword, because for you the gap between
+"holds" and "can obtain" is a large number of jobs inside 25 miles.
 
 **Unlisted pay gets an explicit toggle on every pay rule.** Roughly half of all
 postings don't state a number, and a pay floor that silently eats them is the
@@ -77,9 +104,23 @@ the certifications, and the honest floor on pay and commute. Resumes compress ou
 most of what makes someone hireable; the gaps are where the scoring gets its
 teeth.
 
-The profile is a **plain editable document in the repo**, not a hidden blob. You
-can read it, change it, and see exactly what every score and cover letter was
-working from. If a score looks wrong, the reason is visible in there.
+The profile is **plain, editable and readable inside the app** — not a hidden
+blob. If a score looks wrong you open the profile and see exactly what it was
+working from, and fix it.
+
+**It is never committed to git.** Free GitHub Pages only serves from a public
+repo, and a public repo announcing that you are job hunting — with your honest
+pay floor, your commute limit and your "easy money" preferences in it — is a
+document you do not want a hiring manager finding. So the split is hard:
+
+- **In the repo (public):** the scanner, the app, and scanned job listings.
+  All public data already.
+- **On your phone only:** profile, resume, ZIP, pay floor, filter rules, saved
+  nets, selections, cover letters. `localStorage`, exportable as a backup,
+  never pushed.
+
+Scoring and cover letters run in the browser with your key, so nothing personal
+needs to reach the Action at all.
 
 ---
 
@@ -173,6 +214,26 @@ free, no rate limit, no key, and accurate to a couple of miles, which is all a
 25-mile radius needs. Your address never leaves the device.
 
 ---
+
+## The starter scan list
+
+Seeded and then yours to edit. Weighted toward what the resume and the ZIP
+actually point at, rather than a generic top-200:
+
+- **Defense tech** — Anduril, Shield AI, Palantir, Vannevar Labs, Applied
+  Intuition, Scale AI, Govini, Second Front. Verified live: Anduril 2,180 open
+  roles with 167 listing Boston, Shield AI 440 with 9 in Boston, Palantir 307.
+- **Boston primes and labs** — MITRE, Draper, MIT Lincoln Laboratory, Raytheon,
+  BAE, Textron Systems, L3Harris. All inside a 25-mile radius of 01880. Most of
+  these sponsor clearances rather than requiring one up front.
+- **Boston tech** — Klaviyo, HubSpot, Datadog, Toast, Wayfair. Operations and
+  program-coordination roles, not just engineering.
+- **Federal** — USAJOBS, filtered to the commute radius, with veteran preference
+  paths surfaced rather than buried.
+
+Ops, program coordination and analyst roles are pulled alongside engineering.
+The resume is five years of operations *and* a shipped software portfolio, and
+searching only one half of that throws away most of the target.
 
 ## How it runs
 
