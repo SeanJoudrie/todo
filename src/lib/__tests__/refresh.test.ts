@@ -40,8 +40,8 @@ describe('the install that got stranded on old sample data', () => {
 
   it('refreshing gets the real list in', () => {
     const { tasks, added } = refreshSeed(strandedInstall(), NOW)
-    expect(added).toBeGreaterThan(40)
-    expect(tasks.some((t) => t.title.includes('employer'))).toBe(true)
+    expect(added).toBeGreaterThan(15)
+    expect(tasks.some((t) => t.title.includes('Section 8'))).toBe(true)
     expect(tasks.some((t) => t.title.includes('food stamps'))).toBe(true)
   })
 
@@ -78,12 +78,11 @@ describe('a refresh never destroys anything', () => {
   it('keeps a shipped task that was edited, and does not re-add it', () => {
     const edited = {
       ...buildSeedTasks(NOW)[0],
-      title: 'Follow up with the employer who said Thursday',
       notes: 'my own wording',
       updatedAt: new Date(2026, 8, 1).toISOString(),
     }
     const { tasks } = refreshSeed([edited], NOW)
-    const matches = tasks.filter((t) => t.title === 'Follow up with the employer who said Thursday')
+    const matches = tasks.filter((t) => t.title === edited.title)
     expect(matches).toHaveLength(1)
     expect(matches[0].notes).toBe('my own wording')
   })
@@ -105,6 +104,6 @@ describe('a refresh never destroys anything', () => {
   it('on an empty list just installs the shipped one', () => {
     const { tasks, removed } = refreshSeed([], NOW)
     expect(removed).toBe(0)
-    expect(tasks.length).toBeGreaterThan(40)
+    expect(tasks.length).toBeGreaterThan(15)
   })
 })

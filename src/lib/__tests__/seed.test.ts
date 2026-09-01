@@ -11,7 +11,7 @@ function untouched(): Task[] {
 
 describe('the shipped list', () => {
   it('is there', () => {
-    expect(untouched().length).toBeGreaterThan(40)
+    expect(untouched().length).toBeGreaterThan(15)
   })
 
   it('marks everything as shipped, so it can be cleared later', () => {
@@ -51,10 +51,24 @@ describe('the shipped list', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('dates the employer follow-up to the day it is installed', () => {
-    const followUp = untouched().find((t) => t.title.includes('employer'))
-    expect(followUp?.dueDate).toBe('2026-08-24')
-    expect(followUp?.pinned).toBe(true)
+  it('leads with the two recertifications, dated the day it is installed', () => {
+    const [housing, snap] = untouched()
+    expect(housing.title).toMatch(/Section 8/)
+    expect(snap.title).toMatch(/food stamps/)
+    for (const t of [housing, snap]) {
+      expect(t.targetDate, t.title).toBe('2026-08-24')
+      expect(t.pinned, t.title).toBe(true)
+      expect(t.priority, t.title).toBe('critical')
+      // The deadline is the first thing to find out, so it has to be a step.
+      expect(t.subtasks?.some((sub) => /date|deadline/i.test(sub.title)), t.title).toBe(true)
+    }
+  })
+
+  it('ships nothing that was explicitly dropped', () => {
+    const titles = untouched().map((t) => t.title.toLowerCase())
+    for (const gone of ['employer', 'move downstairs', 'jackson', 'washer', 'wakefield', 'book', 'wardrobe']) {
+      expect(titles.some((t) => t.includes(gone)), gone).toBe(false)
+    }
   })
 
   it('parks things that cannot start yet, without hiding them', () => {
@@ -66,7 +80,7 @@ describe('the shipped list', () => {
     // Most of the list should be genuinely actionable, not parked.
     expect(open.length).toBeGreaterThan(waiting.length + someday.length)
     expect(someday.length).toBeGreaterThanOrEqual(4)
-    expect(waiting.length).toBeGreaterThanOrEqual(4)
+    expect(waiting.length).toBeGreaterThanOrEqual(1)
   })
 
   it('says why each blocked task is blocked', () => {
@@ -82,11 +96,10 @@ describe('the shipped list', () => {
     }
   })
 
-  it('does not duplicate the purge as both a task and a step of the move', () => {
-    const tasks = untouched()
-    const move = tasks.find((t) => t.title === 'Move downstairs')
-    expect(move?.subtasks?.some((s) => /purge/i.test(s.title))).toBe(false)
-    expect(tasks.some((t) => /get rid of a big chunk/i.test(t.title))).toBe(true)
+  it('says why each parked task is parked', () => {
+    for (const t of untouched().filter((x) => x.status === 'someday')) {
+      expect(t.notes, t.title).toMatch(/parked/i)
+    }
   })
 })
 

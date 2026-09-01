@@ -65,7 +65,7 @@ await page.goto(BASE, { waitUntil: 'networkidle' })
 await page.waitForTimeout(300)
 
 const seeded = await titles()
-check('ships a starting list', seeded.length > 20, `got ${seeded.length}`)
+check('ships a starting list', seeded.length > 10, `got ${seeded.length}`)
 
 const openingTab = await page.locator('nav button[aria-current="true"]').innerText()
 check('opens showing everything, not just today', /^All/.test(openingTab), openingTab.replace(/\n/g, ' '))
@@ -150,14 +150,14 @@ await page.getByRole('dialog').getByRole('button', { name: 'army', exact: true }
 await page.waitForTimeout(300)
 const armyPlan = await planTitles()
 await page.getByRole('dialog').getByRole('button', { name: 'army', exact: true }).click()
-await page.getByRole('dialog').getByRole('button', { name: 'content', exact: true }).click()
+await page.getByRole('dialog').getByRole('button', { name: 'people', exact: true }).click()
 await page.waitForTimeout(300)
-const contentPlan = await planTitles()
-const overlap = armyPlan.filter((t) => contentPlan.includes(t))
+const peoplePlan = await planTitles()
+const overlap = armyPlan.filter((t) => peoplePlan.includes(t))
 check(
   'focus filter narrows the plan',
-  armyPlan.length > 0 && contentPlan.length > 0 && overlap.length === 0,
-  `army ${armyPlan.length}, content ${contentPlan.length}, overlap ${overlap.length}`,
+  armyPlan.length > 0 && peoplePlan.length > 0 && overlap.length === 0,
+  `army ${armyPlan.length}, people ${peoplePlan.length}, overlap ${overlap.length}`,
 )
 await page.getByRole('dialog').getByRole('button', { name: 'whatever' }).click()
 await page.waitForTimeout(200)
@@ -224,7 +224,7 @@ check('a stranded install is detected', strandedCount < 10, `${strandedCount} ta
 await page.getByRole('button', { name: 'Load my real list' }).click()
 await page.waitForTimeout(900)
 const recovered = await titles()
-check('loading the real list restores it', recovered.length > 35, `${recovered.length} tasks after`)
+check('loading the real list restores it', recovered.length > 10, `${recovered.length} tasks after`)
 check('stale samples are cleared', !recovered.some((t) => t.startsWith('Do laundry')))
 const doneKept = await page.evaluate(() => {
   const s = JSON.parse(localStorage.getItem('todo.state.v1'))
@@ -274,7 +274,7 @@ check(
 await page.getByRole('button', { name: 'importance', exact: true }).click()
 await page.waitForTimeout(400)
 const byImportance = (await titles())[0]
-check('importance leads with the pinned work', /employer|Move downstairs/.test(byImportance), byImportance.split('\n')[0])
+check('importance leads with the pinned work', /Section 8|food stamps/.test(byImportance), byImportance.split('\n')[0])
 await page.getByRole('button', { name: /^Today/ }).click()
 await page.waitForTimeout(250)
 
